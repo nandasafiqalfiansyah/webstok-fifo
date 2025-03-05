@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        Int    @id @default(autoincrement())
+  nama      String @db.VarChar(52)
+  email     String @unique @db.VarChar(46)
+  password  String @db.VarChar(72)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Produk {
+  id           Int    @id @default(autoincrement())
+  nama_produk  String @db.VarChar(32) @unique
+  kategori     String @db.VarChar(16)
+  harga        Int
+  stok         Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  BarangMasuk  BarangMasuk[]
+  BarangKeluar BarangKeluar[]
+}
+
+model BarangMasuk {
+  id            Int    @id @default(autoincrement())
+  tanggal_masuk DateTime @default(now())
+  jumlah        Int
+  produk        Produk @relation(fields: [produk_id], references: [id], onDelete: Cascade)
+  produk_id     Int
+}
+
+model BarangKeluar {
+  id             Int    @id @default(autoincrement())
+  tanggal_keluar DateTime @default(now())
+  jumlah         Int
+  produk         Produk @relation(fields: [produk_id], references: [id], onDelete: Cascade)
+  produk_id      Int
+}
