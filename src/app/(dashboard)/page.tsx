@@ -25,7 +25,7 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchProduk() {
       try {
-        const res = await fetch("http://localhost:3000/api/produk");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/produk`);
         const data = await res.json();
 
         const produkData = data.data;
