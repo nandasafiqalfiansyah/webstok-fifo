@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           return {
-            id: admin.id.toString(),
+            id: admin.id,
             name: admin.nama,
             email: admin.email,
             password: admin.password,
@@ -57,9 +57,7 @@ export const authOptions: NextAuthOptions = {
         } catch (error) {
           console.error('Authentication error:', error)
           throw new Error('Internal server error')
-        } finally {
-          await prisma.$disconnect()
-        }
+        } 
       },
     }),
   ],

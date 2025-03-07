@@ -9,20 +9,6 @@ interface Admin {
   password: string;
 }
 
-interface UpdateAdminData {
-  id: number;
-  nama: string;
-  email: string;
-  password: string;
-}
-
-interface DeleteAdminResponse {
-  id: number;
-  nama: string;
-  email: string;
-  password: string;
-}
-
 // Create Admin
 async function createAdmin(nama: string, email: string, password: string): Promise<Admin> {
   try {
@@ -49,8 +35,7 @@ async function getAdmins(): Promise<Admin[]> {
   }
 }
 
-// Get Single Admin by ID
-export async function getAdminById(id: number): Promise<Admin | null> {
+async function getAdminById(id: number): Promise<Admin | null> {
   try {
     const admin = await prisma.admin.findUnique({
       where: { id },
@@ -58,35 +43,6 @@ export async function getAdminById(id: number): Promise<Admin | null> {
     return admin;
   } catch (error) {
     throw new Error("Failed to retrieve admin");
-  }
-}
-
-// Update Admin
-export async function updateAdminById(id: number, nama: string, email: string, password: string): Promise<Admin> {
-  try {
-    const updatedAdmin = await prisma.admin.update({
-      where: { id },
-      data: {
-        nama,
-        email,
-        password, // Anda bisa melakukan hashing password sebelum menyimpan
-      },
-    });
-    return updatedAdmin;
-  } catch (error) {
-    throw new Error("Failed to update admin");
-  }
-}
-
-// Delete Admin
-async function deleteAdmin(id: number): Promise<DeleteAdminResponse> {
-  try {
-    const deletedAdmin = await prisma.admin.delete({
-      where: { id },
-    });
-    return deletedAdmin;
-  } catch (error) {
-    throw new Error("Failed to delete admin");
   }
 }
 
@@ -126,4 +82,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: (error as Error).message }, { status: 500 });
   }
 }
-

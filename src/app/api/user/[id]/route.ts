@@ -1,5 +1,32 @@
 import { NextResponse } from "next/server";
-import { getAdminById, updateAdminById } from "../route";
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient()
+
+interface Admin {
+  id?: number;
+  nama: string;
+  email: string;
+  password: string;
+}
+
+async function getAdminById(id: number): Promise<Admin | null> {
+  try {
+    return await prisma.admin.findUnique({ where: { id } });
+  } catch (error) {
+    throw new Error("Failed to retrieve admin");
+  }
+}
+
+async function updateAdminById(id: number, nama: string, email: string, password: string): Promise<Admin> {
+  try {
+    return await prisma.admin.update({
+      where: { id },
+      data: { nama, email, password }, // Hash password sebelum menyimpan
+    });
+  } catch (error) {
+    throw new Error("Failed to update admin");
+  }
+}
 
 // GET admin by ID
 export async function GET(request: Request, { params }: { params: { id: string } }) {

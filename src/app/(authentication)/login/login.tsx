@@ -69,7 +69,7 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
             name="email"
             required
             disabled={submitting}
-            placeholder={dict.login.form.email}
+            placeholder="masukan Email"
             aria-label="Email"
           />
         </InputGroup>
