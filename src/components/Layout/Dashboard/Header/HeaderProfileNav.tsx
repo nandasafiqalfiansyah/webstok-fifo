@@ -66,7 +66,7 @@ export default async function HeaderProfileNav() {
           </div>
         </DropdownToggle>
         <DropdownMenu className="pt-0">
-          <DropdownHeader className="fw-bold">{dict.profile.settings.title}</DropdownHeader>
+          {/* <DropdownHeader className="fw-bold">{dict.profile.settings.title}</DropdownHeader>
           <Link href="#" passHref legacyBehavior>
             <DropdownItem>
               <ItemWithIcon icon={faUser}>{dict.profile.settings.items.profile}</ItemWithIcon>
@@ -77,7 +77,7 @@ export default async function HeaderProfileNav() {
               <ItemWithIcon icon={faGear}>{dict.profile.settings.items.settings}</ItemWithIcon>
             </DropdownItem>
           </Link>
-          <DropdownDivider />
+          <DropdownDivider /> */}
           <HeaderLogout>
             <DropdownItem>
               <ItemWithIcon icon={faPowerOff}>{dict.profile.logout}</ItemWithIcon>

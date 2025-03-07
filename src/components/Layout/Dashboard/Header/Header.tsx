@@ -14,7 +14,6 @@ export default function Header() {
         <Link href="/" className="header-brand d-md-none">
           <svg width="80" height="46">
             <title>CoreUI Logo</title>
-         
           </svg>
         </Link>
         <div className="header-nav d-none d-md-flex">

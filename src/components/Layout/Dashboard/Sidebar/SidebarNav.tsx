@@ -6,6 +6,8 @@ import {
   faHome,
   faIndent,
   faOutdent,
+  faProcedures,
+  faProjectDiagram,
 } from '@fortawesome/free-solid-svg-icons'
 import React, { PropsWithChildren } from 'react'
 import SidebarNavItem from '@/components/Layout/Dashboard/Sidebar/SidebarNavItem'
@@ -30,10 +32,13 @@ export default async function SidebarNav() {
         Produk
       </SidebarNavItem>
       <SidebarNavItem icon={faIndent} href={`${process.env.NEXT_PUBLIC_API_URL}/barang-masuk`}>
-        barang masuk
+        Barang masuk
       </SidebarNavItem>
       <SidebarNavItem icon={faOutdent} href={`${process.env.NEXT_PUBLIC_API_URL}/barang-keluar`}>
-        barang keluar
+        Barang keluar
+      </SidebarNavItem>
+      <SidebarNavItem icon={faProjectDiagram} href={`${process.env.NEXT_PUBLIC_API_URL}/proses-fifo`}>
+        Proses fifo
       </SidebarNavItem>
       <SidebarNavItem icon={faUser} href={`${process.env.NEXT_PUBLIC_API_URL}/profile`}>
         Profile

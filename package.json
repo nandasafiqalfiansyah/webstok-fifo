@@ -10,11 +10,11 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test": "start-server-and-test dev http://localhost:3000 cypress:run",
-    "migrate:seed": "prisma generate && prisma migrate dev && node --loader ts-node/esm prisma/seed.ts",
-    "seed": "ts-node prisma/seed.ts"
+    "migrate:seed": "prisma generate && prisma migrate dev && node prisma/seed.js",
+    "seed": "node prisma/seed.js"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.4",
@@ -32,6 +32,8 @@
     "classnames": "^2.5.1",
     "i18next": "^23.12.2",
     "js-cookie": "^3.0.5",
+    "jspdf": "^3.0.0",
+    "jspdf-autotable": "^5.0.2",
     "negotiator": "^0.6.3",
     "next": "^14.2.5",
     "next-auth": "^4.24.7",
@@ -43,6 +45,7 @@
     "react-dom": "^18.3.1",
     "react-paginate": "^8.2.0",
     "react-responsive": "^10.0.0",
+    "react-table": "^7.8.0",
     "styled-components": "^6.1.15",
     "swr": "^2.2.5",
     "ts-node": "^10.9.2",

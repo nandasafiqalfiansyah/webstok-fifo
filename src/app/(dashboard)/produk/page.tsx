@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import DataTable from "react-data-table-component";
 
 interface Produk {
@@ -23,7 +27,8 @@ const formatDate = (dateString: string) => {
   }).format(date);
 };
 
-export default function ProdukPage() {
+export default function ProdukList() {
+  const router = useRouter();
   const [produkList, setProdukList] = useState<Produk[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,6 +36,7 @@ export default function ProdukPage() {
     async function fetchProduk() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/produk`);
+        if (!res.ok) throw new Error("Gagal mengambil data produk");
         const data = await res.json();
         setProdukList(data.data);
       } catch (error) {
@@ -52,26 +58,43 @@ export default function ProdukPage() {
     {
       name: "Barang Masuk",
       cell: (row: Produk) =>
-        row.BarangMasuk.map((bm) => (
-          <div key={bm.id}>
-            {formatDate(bm.tanggal_masuk)} ({bm.jumlah})
-          </div>
-        )),
+        row.BarangMasuk.length > 0 ? (
+          row.BarangMasuk.map((bm) => (
+            <div key={bm.id}>
+              {formatDate(bm.tanggal_masuk)} ({bm.jumlah})
+            </div>
+          ))
+        ) : (
+          <span>-</span>
+        ),
     },
     {
       name: "Barang Keluar",
       cell: (row: Produk) =>
-        row.BarangKeluar.map((bk) => (
-          <div key={bk.id}>
-            {formatDate(bk.tanggal_keluar)} ({bk.jumlah})
-          </div>
-        )),
+        row.BarangKeluar.length > 0 ? (
+          row.BarangKeluar.map((bk) => (
+            <div key={bk.id}>
+              {formatDate(bk.tanggal_keluar)} ({bk.jumlah})
+            </div>
+          ))
+        ) : (
+          <span>-</span>
+        ),
     },
   ];
 
   return (
     <div className="container mt-4">
       <h3 className="mb-4">Daftar Produk</h3>
+      <div className="mb-3 text-end mr-2">
+      <Button variant="success" className="m-2"  onClick={() => router.push("/produk/create")}>
+          <FontAwesomeIcon icon={faPlus} fixedWidth /> Import Produk
+        </Button>
+        <Button variant="success" onClick={() => router.push("/produk/create")}>
+          <FontAwesomeIcon icon={faPlus} fixedWidth /> Tambah Produk
+        </Button>
+      </div>
+
       <div className="border rounded shadow-sm p-3 bg-white">
         <DataTable
           columns={columns}
