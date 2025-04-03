@@ -1,14 +1,14 @@
 'use client'
 
-import {
-  Alert, Button, Col, Form, FormControl, InputGroup, Row,
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
+import { 
+  Alert, Button, Col, Form, FormControl, InputGroup, Row 
 } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons'
 import { faLock } from '@fortawesome/free-solid-svg-icons'
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import useDictionary from '@/locales/dictionary-hook'
 import InputGroupText from 'react-bootstrap/InputGroupText'
 
@@ -21,6 +21,8 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSubmitting(true)
+    setError('')
+
     const formData = new FormData(event.currentTarget)
     const email = formData.get('email') as string
     const password = formData.get('password') as string
@@ -31,17 +33,12 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
         password,
         redirect: false,
       })
-
-      if (!res || !res.ok) {
-        setError(res?.error || dict.login.message.auth_failed)
-        return
+      if (!res?.ok) {
+        throw new Error('Email atau password salah')
       }
-
       router.push(callbackUrl || '/dashboard')
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message)
-      }
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
     } finally {
       setSubmitting(false)
     }
@@ -50,16 +47,13 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
   return (
     <>
       {error && (
-        <Alert
-          variant="danger"
-          onClose={() => setError('')}
-          dismissible
-        >
+        <Alert variant="danger" className="mb-3" dismissible onClose={() => setError('')}>
           {error}
         </Alert>
       )}
 
       <Form onSubmit={handleSubmit}>
+        {/* Input Email */}
         <InputGroup className="mb-3">
           <InputGroupText>
             <FontAwesomeIcon icon={faEnvelope} fixedWidth />
@@ -69,11 +63,12 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
             name="email"
             required
             disabled={submitting}
-            placeholder="masukan Email"
+            placeholder="Masukkan Email"
             aria-label="Email"
           />
         </InputGroup>
 
+        {/* Input Password */}
         <InputGroup className="mb-3">
           <InputGroupText>
             <FontAwesomeIcon icon={faLock} fixedWidth />
@@ -83,20 +78,16 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
             name="password"
             required
             disabled={submitting}
-            placeholder={dict.login.form.password}
+            placeholder={dict.login?.form?.password || 'Masukkan Password'}
             aria-label="Password"
           />
         </InputGroup>
 
+        {/* Tombol Submit */}
         <Row className="align-items-center">
           <Col xs={6}>
-            <Button
-              className="px-4"
-              variant="primary"
-              type="submit"
-              disabled={submitting}
-            >
-              {submitting ? 'Loading...' : dict.login.form.submit}
+            <Button className="px-4" variant="primary" type="submit" disabled={submitting}>
+              {submitting ? 'Loading...' : dict.login?.form?.submit || 'Login'}
             </Button>
           </Col>
         </Row>

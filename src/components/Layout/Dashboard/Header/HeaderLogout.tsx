@@ -8,7 +8,7 @@ export default function HeaderLogout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div onClick={logout} onKeyDown={logout} role="button" tabIndex={0}>
+    <div className='pt-2 center'  onClick={logout} onKeyDown={logout} role="button" tabIndex={0}>
       {children}
     </div>
   )

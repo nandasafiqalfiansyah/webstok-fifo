@@ -30,19 +30,16 @@ export const authOptions: NextAuthOptions = {
         const { email, password } = credentials
 
         try {
-          // Cari admin di database berdasarkan email
           const admin = await prisma.admin.findUnique({
             where: { email },
           })
 
           const dict = await getDictionary()
 
-          // Cek apakah admin ditemukan
           if (!admin) {
             throw new Error(dict.login.message.auth_failed)
           }
 
-          // Cek apakah password cocok
           const passwordMatch = await bcrypt.compare(password, admin.password)
           if (!passwordMatch) {
             throw new Error(dict.login.message.auth_failed)
@@ -55,7 +52,6 @@ export const authOptions: NextAuthOptions = {
             password: admin.password,
           }
         } catch (error) {
-          console.error('Authentication error:', error)
           throw new Error('Internal server error')
         } 
       },

@@ -6,9 +6,7 @@ export default function Footer() {
     <footer className="footer border-top px-sm-2 py-2">
       <Container fluid className="text-center align-items-center flex-column flex-md-row d-flex justify-content-between">
         <div>
-          <a className="text-decoration-none" href="https://coreui.io">Universitas Muhammadiyah Ponorogo </a>
-          {' '}
-          © 2025 Syeda aliya Bukhari
+          Syeda Aliya Bukhari © {new Date().getFullYear()}
         </div>
         <div className="ms-md-auto">
           versi&nbsp;
