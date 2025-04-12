@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Card, CardBody } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowDown, faArrowUp, faBox, faShoppingCart, faMoneyBillWave } from "@fortawesome/free-solid-svg-icons";
-
+import { faBox, faShoppingCart, faMoneyBillWave } from "@fortawesome/free-solid-svg-icons";
 interface Produk {
   id: number;
   nama_produk: string;
@@ -31,7 +30,6 @@ export default function DashboardPage() {
         const produkData = data.data;
         setProdukList(produkData);
 
-        // Hitung total barang masuk & keluar
         const masuk = produkData.reduce((sum: number, produk: Produk) => sum + produk.BarangMasuk.reduce((s, bm) => s + bm.jumlah, 0), 0);
         const keluar = produkData.reduce((sum: number, produk: Produk) => sum + produk.BarangKeluar.reduce((s, bk) => s + bk.jumlah, 0), 0);
 
@@ -96,7 +94,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="border rounded shadow-sm p-3 bg-white">
+      <div className="border  shadow-sm p-3 ">
         <h4 className="mb-3">Produk Terlaris</h4>
         <DataTable
           columns={columns}
@@ -110,7 +108,7 @@ export default function DashboardPage() {
           striped
           responsive
         />
+        </div>
       </div>
-    </div>
   );
 }

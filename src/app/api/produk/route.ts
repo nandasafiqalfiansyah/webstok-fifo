@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import prisma from "../auth/option";
 
-// Get All Produk with Relations
 async function getAllProduk(): Promise<any[]> {
   try {
     const produk = await prisma.produk.findMany({
       include: {
-        BarangMasuk: true, // Ambil semua data BarangMasuk yang terkait
-        BarangKeluar: true, // Ambil semua data BarangKeluar yang terkait
+        BarangMasuk: true,
+        BarangKeluar: true,
       },
     });
     return produk;
@@ -16,11 +15,9 @@ async function getAllProduk(): Promise<any[]> {
   }
 }
 
-// Unified GET function for both fetching all produk and a single produk by ID
 export async function GET(request: Request, { params }: { params?: { id: string } }) {
   try {
     if (params && params.id) {
-      // Jika ID diberikan, ambil produk berdasarkan ID
       const produkId = parseInt(params.id, 10);
       if (isNaN(produkId)) {
         return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
@@ -29,8 +26,8 @@ export async function GET(request: Request, { params }: { params?: { id: string 
       const produk = await prisma.produk.findUnique({
         where: { id: produkId },
         include: {
-          BarangMasuk: true, // Ambil BarangMasuk terkait
-          BarangKeluar: true, // Ambil BarangKeluar terkait
+          BarangMasuk: true,
+          BarangKeluar: true,
         },
       });
 
@@ -39,12 +36,79 @@ export async function GET(request: Request, { params }: { params?: { id: string 
       }
       return NextResponse.json({ data: produk });
     }
-
-    // Jika tidak ada ID, ambil semua produk beserta relasinya
     const produk = await getAllProduk();
     return NextResponse.json({ data: produk });
 
   } catch (error) {
+    return NextResponse.json({ message: (error as Error).message }, { status: 500 });
+  }
+}
+
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { nama_produk, kategori, harga, stok } = body;
+
+    // Validasi sederhana (opsional bisa kamu tambah)
+    if (!nama_produk || !kategori || !harga || !stok) {
+      return NextResponse.json({ message: 'Data produk tidak lengkap.' }, { status: 400 });
+    }
+
+    // Simpan produk ke database
+    const produk = await prisma.produk.create({
+      data: {
+        nama_produk,
+        kategori,
+        harga,
+        stok,
+      },
+    });
+
+    return NextResponse.json({ data: produk }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const body = await request.json();
+    const { id } = params;
+    const { nama_produk, kategori, harga, stok } = body;
+    if (!nama_produk || !kategori || !harga || !stok) {
+      return NextResponse.json({ message: 'Data produk tidak lengkap.' }, { status: 400 });
+    }
+    const produk = await prisma.produk.update({
+      where: { id: parseInt(id) },
+      data: {
+        nama_produk,
+        kategori,
+        harga,
+        stok,
+      },
+    });
+    return NextResponse.json({ data: produk }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const { id } = params;
+    const produk = await prisma.produk.delete({
+      where: { id: parseInt(id) },
+    });
+    return NextResponse.json({ data: produk }, { status: 200 });
+  }
+  catch (error) {
     return NextResponse.json({ message: (error as Error).message }, { status: 500 });
   }
 }
