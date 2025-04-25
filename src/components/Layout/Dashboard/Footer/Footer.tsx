@@ -14,7 +14,7 @@ export default function Footer() {
             className="text-decoration-none"
             href="@app/ui/dashboard/AdminLayout"
           >
-           0.0.1
+           0.1
           </a>
         </div>
       </Container>

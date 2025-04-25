@@ -1,8 +1,5 @@
 import {
-  Badge,
   Dropdown,
-  DropdownDivider,
-  DropdownHeader,
   DropdownItem,
   DropdownMenu,
   DropdownToggle,
@@ -11,20 +8,11 @@ import {
 } from 'react-bootstrap'
 import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faBell,
-  faCreditCard,
-  faEnvelopeOpen,
-  faFile,
-  faMessage,
-  faUser,
-} from '@fortawesome/free-regular-svg-icons'
 import { PropsWithChildren } from 'react'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import {
-  faGear, faListCheck, faLock, faPowerOff,
+faPowerOff,
 } from '@fortawesome/free-solid-svg-icons'
-import Link from 'next/link'
 import HeaderLogout from '@/components/Layout/Dashboard/Header/HeaderLogout'
 import { authOptions } from '@/app/api/auth/option'
 import { getServerSession } from 'next-auth'
@@ -52,9 +40,13 @@ export default async function HeaderProfileNav() {
   return (
     <Nav>
       <Dropdown as={NavItem}>
+      {session?.user?.email && (
+      <span>{session.user.email}</span>
+      )}
         <DropdownToggle variant="link" bsPrefix="hide-caret" className="py-0 px-2 rounded-0" id="dropdown-profile">
           <div className="avatar position-relative">
-            {session && (
+            
+            {session?.user?.email && (
               <Image
                 fill
                 sizes="32px"

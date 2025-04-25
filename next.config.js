@@ -16,6 +16,14 @@ const nextConfig = {
         hostname: 'firebasestorage.googleapis.com',
         port: '',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+      },
     ],
   },
 }
