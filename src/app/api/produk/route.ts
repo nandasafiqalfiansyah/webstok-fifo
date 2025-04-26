@@ -23,15 +23,6 @@ async function getAllProduk(): Promise<ProdukWithRelations[]> {
   });
 }
 
-export async function getProdukById(id: number): Promise<ProdukWithRelations | null> {
-  return await prisma.produk.findUnique({
-    where: { id },
-    include: {
-      BarangMasuk: true,
-      BarangKeluar: true,
-    },
-  });
-}
 
 function validateProdukData(data: Partial<Produk>): string | null {
   if (!data.nama_produk) return "Nama produk harus diisi";

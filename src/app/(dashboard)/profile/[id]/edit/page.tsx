@@ -11,7 +11,6 @@ interface UserData {
   id: number;
   nama: string;
   email: string;
-  role: string;
 }
 
 export default function EditProfilePage() {
@@ -24,7 +23,6 @@ export default function EditProfilePage() {
     id: 0,
     nama: "", 
     email: "", 
-    role: "" 
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);

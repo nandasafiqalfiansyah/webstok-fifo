@@ -36,6 +36,7 @@ interface UserList {
   id: number;
   nama: string;
   email: string;
+  role?: string; // tambahkan ini
 }
 
 export default function Profile() {

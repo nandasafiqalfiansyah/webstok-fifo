@@ -81,7 +81,7 @@ export default function ProsesFifo() {
             <Table striped bordered hover>
               <thead className="bg-light">
                 <tr>
-                  <th width="60">No</th>
+                  <th style={{ width: "60px" }}>No</th>
                   <th>Nama Produk</th>
                   <th>Kategori</th>
                   <th>Harga</th>
@@ -137,7 +137,7 @@ export default function ProsesFifo() {
             <Table striped bordered hover>
               <thead className="bg-light">
                 <tr>
-                  <th width="60">No</th>
+                  <th style={{ width: "60px" }}>No</th>
                   <th>Nama Produk</th>
                   <th>Kategori</th>
                   <th>Harga</th>
@@ -185,7 +185,7 @@ export default function ProsesFifo() {
             <Table striped bordered hover>
               <thead className="bg-light">
                 <tr>
-                  <th width="60">No</th>
+                  <th style={{ width: "60px" }}>No</th>
                   <th>Nama Produk</th>
                   <th>Stok Awal</th>
                   <th>Sisa Stok</th>

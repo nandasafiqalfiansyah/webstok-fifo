@@ -1,10 +1,23 @@
-# 📦 Nama Proyek
+# 📦 Web Stock Fifo
 
-Deskripsi singkat mengenai proyek. Misalnya:
+web stock fifo adalah aplikasi web untuk menghitung harga pokok penjualan (HPP) menggunakan metode FIFO (First In First Out). Aplikasi ini ditulis dengan TypeScript dan menggunakan Next.js sebagai framework.
 
-Aplikasi web modern menggunakan Next.js, Prisma, dan Cypress untuk pengujian. Dibangun untuk [tujuan proyek], misalnya: manajemen tugas, e-commerce, atau blog.
 
 ---
+
+---
+
+## 📂 Cara Instalasi
+```bash
+git clone https://github.com/nandasafiqalfiansyah/webstok-fifo.git
+```
+```bash
+npm install
+```
+```bash
+npm run dev             # Jalankan aplikasi dalam mode development
+npm run start          # Jalankan aplikasi setelah build
+```
 
 ## 🚀 Tech Stack
 
@@ -29,3 +42,4 @@ npm run cypress:run   # Jalankan semua test E2E di CLI
 npm run test          # Start server & jalankan E2E test secara otomatis
 npm run migrate:seed  # Generate Prisma client, migrasi DB & seed data
 npm run seed          # Jalankan file seed saja
+
