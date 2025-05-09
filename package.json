@@ -30,6 +30,7 @@
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.3",
     "classnames": "^2.5.1",
+    "framer-motion": "^12.10.5",
     "i18next": "^23.12.2",
     "js-cookie": "^3.0.5",
     "jspdf": "^3.0.0",

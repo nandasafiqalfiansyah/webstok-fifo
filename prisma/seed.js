@@ -9,6 +9,7 @@ async function main() {
   await prisma.admin.createMany({
     data: [
       { nama: 'Admin', email: 'admin@gmail.com', password: adminPassword },
+      
     ],
   });
 
