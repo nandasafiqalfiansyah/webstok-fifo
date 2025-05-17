@@ -26,6 +26,7 @@ async function getAllProduk(): Promise<ProdukWithRelations[]> {
 
 function validateProdukData(data: Partial<Produk>): string | null {
   if (!data.nama_produk) return "Nama produk harus diisi";
+  if (data.nama_produk.length > 32) return `Nama produk sekarang ${data.nama_produk.length} dan maksimal 32 karakter`;
   if (!data.kategori) return "Kategori harus diisi";
   if (data.harga === undefined || data.harga <= 0) return "Harga harus lebih dari 0";
   if (data.stok === undefined || data.stok < 0) return "Stok tidak boleh negatif";
@@ -103,9 +104,9 @@ export async function POST(request: Request) {
     );
 
   } catch (error) {
-    console.error("Error in POST /api/produk:", error);
+    console.log("Error in POST /api/produk:", error);
     return NextResponse.json(
-      { success: false, message: "Gagal membuat produk" },
+      { success: false, message: "Gagal membuat produk", error },
       { status: 500 }
     );
   }

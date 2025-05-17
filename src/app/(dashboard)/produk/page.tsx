@@ -135,6 +135,7 @@ export default function InputDataPage() {
       });
 
       const result = await res.json();
+      // console.log(result)
 
       if (res.ok) {
         setMessage({ text: `Produk ${editMode.type === 'produk' ? 'diperbarui' : 'ditambahkan'}`, variant: "success" });

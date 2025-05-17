@@ -6,25 +6,29 @@ import { motion } from 'framer-motion';
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
-      className="min-vh-100 d-flex flex-row align-items-center"
-      initial={{ background: 'linear-gradient(135deg, #1e88e5 0%, #0d47a1 50%)' }}
-      animate={{
-        background: [
-          'linear-gradient(135deg, #1e88e5 0%, #0d47a1 50%)', // Biru muda ke biru tua
-          'linear-gradient(135deg, #0d47a1 0%, #1976d2 50%)', // Biru tua ke biru medium
-          'linear-gradient(135deg, #1976d2 0%, #1e88e5 50%)', // Biru medium ke biru muda
-        ],
-      }}
-      transition={{
-        duration: 15, // Diperlambat untuk efek yang lebih tenang
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
+      className="min-vh-100 d-flex flex-row align-items-center position-relative"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
       style={{
-        backgroundSize: '200% 200%', // Untuk efek pergeseran yang lebih smooth
+        backgroundImage: 'url("https://images.unsplash.com/photo-1578916171728-46686eac8d58")', 
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
-      <Container>{children}</Container>
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 1,
+        }}
+      />
+      <Container style={{ zIndex: 2 }}>{children}</Container>
     </motion.div>
   );
 }
