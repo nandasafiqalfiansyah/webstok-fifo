@@ -80,20 +80,20 @@ export default function DashboardPage() {
   );
 
   return (
-    <Container fluid className="py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">Dashboard</h2>
-        <div>
-          <button className="btn btn-outline-primary me-2">
-            <FontAwesomeIcon icon={faChartLine} className="me-2" />
-            Laporan
-          </button>
-          <button className="btn btn-primary">
-            <FontAwesomeIcon icon={faTrophy} className="me-2" />
-            Produk Terbaik
-          </button>
-        </div>
-      </div>
+      <Container fluid className="py-4">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2 gap-md-0">
+    <h2 className="mb-0">Dashboard</h2>
+    <div className="d-flex flex-wrap gap-2">
+      <button className="btn btn-outline-primary py-2 flex-grow-1 flex-md-grow-0">
+        <FontAwesomeIcon icon={faChartLine} className="me-2" />
+        Laporan
+      </button>
+      <button className="btn btn-primary py-2 flex-grow-1 flex-md-grow-0">
+        <FontAwesomeIcon icon={faTrophy} className="me-2" />
+        Produk Terbaik
+      </button>
+    </div>
+  </div>
 
       <Row className="mb-4 g-4">
         <Col md={4}>

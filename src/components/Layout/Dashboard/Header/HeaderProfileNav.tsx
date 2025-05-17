@@ -51,7 +51,7 @@ export default async function HeaderProfileNav() {
                 fill
                 sizes="32px"
                 className="rounded-circle"
-                src="https://firebasestorage.googleapis.com/v0/b/backend-anak.appspot.com/o/user%2Fdefault.jpeg?alt=media"
+                src="/27470336_7294793.jpg"
                 alt={session.user.email}
               />
             )}

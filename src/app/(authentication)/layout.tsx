@@ -11,7 +11,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
       style={{
-        backgroundImage: 'url("https://images.unsplash.com/photo-1578916171728-46686eac8d58")', 
+        backgroundImage: 'url("https://i.pinimg.com/736x/65/d6/b6/65d6b6447e454e4d6a45a4e056d5cb6e.jpg")', 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

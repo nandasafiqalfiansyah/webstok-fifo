@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { 
-  Alert, Button, Col, Form, FormControl, InputGroup, Row 
+  Alert, Button, Form, FormControl, InputGroup 
 } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons'
@@ -45,7 +45,7 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
   }
 
   return (
-    <>
+    <div className="w-100">
       {error && (
         <Alert variant="danger" className="mb-3" dismissible onClose={() => setError('')}>
           {error}
@@ -55,7 +55,7 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
       <Form onSubmit={handleSubmit}>
         {/* Input Email */}
         <InputGroup className="mb-3">
-          <InputGroupText>
+          <InputGroupText className="px-3">
             <FontAwesomeIcon icon={faEnvelope} fixedWidth />
           </InputGroupText>
           <FormControl
@@ -65,12 +65,13 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
             disabled={submitting}
             placeholder="Masukkan Email"
             aria-label="Email"
+            className="py-2 text-dark"
           />
         </InputGroup>
 
         {/* Input Password */}
-        <InputGroup className="mb-3">
-          <InputGroupText>
+        <InputGroup className="mb-4">
+          <InputGroupText className="px-3">
             <FontAwesomeIcon icon={faLock} fixedWidth />
           </InputGroupText>
           <FormControl
@@ -80,18 +81,23 @@ export default function Login({ callbackUrl }: { callbackUrl: string }) {
             disabled={submitting}
             placeholder={dict.login?.form?.password || 'Masukkan Password'}
             aria-label="Password"
+            className="py-2 text-dark"
           />
         </InputGroup>
 
         {/* Tombol Submit */}
-        <Row className="align-items-center">
-          <Col xs={6}>
-            <Button className="px-4" variant="primary" type="submit" disabled={submitting}>
-              {submitting ? 'Loading...' : dict.login?.form?.submit || 'Login'}
-            </Button>
-          </Col>
-        </Row>
+        <div className="d-grid">
+          <Button 
+            variant="primary" 
+            type="submit" 
+            disabled={submitting}
+            size="lg"
+            className="py-2 fw-semibold"
+          >
+            {submitting ? 'Loading...' : dict.login?.form?.submit || 'Login'}
+          </Button>
+        </div>
       </Form>
-    </>
+    </div>
   )
 }
