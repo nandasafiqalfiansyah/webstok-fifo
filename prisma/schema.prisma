@@ -25,6 +25,7 @@ model Produk {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  tanggal_kadaluarsa DateTime?
   BarangMasuk  BarangMasuk[]
   BarangKeluar BarangKeluar[]
 }

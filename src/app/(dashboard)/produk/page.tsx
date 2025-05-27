@@ -6,14 +6,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faBox, faShoppingCart, faMoneyBillWave, faTrophy, 
   faChartLine, faPlus, faSave, faSpinner, faTimes, faEdit, 
-  faUpload
+  faUpload, faExclamationTriangle
 } from "@fortawesome/free-solid-svg-icons";
+
 interface Produk {
   id: number;
   nama_produk: string;
   kategori: string;
   harga: number;
   stok: number;
+  tanggal_kadaluarsa?: string;
 }
 
 interface BarangMasuk {
@@ -44,7 +46,8 @@ export default function InputDataPage() {
     nama_produk: "", 
     kategori: "Elektronik", 
     harga: 0, 
-    stok: 0 
+    stok: 0,
+    tanggal_kadaluarsa: new Date().toISOString().split('T')[0] 
   });
   const [formMasuk, setFormMasuk] = useState<Omit<BarangMasuk, 'id'>>({ 
     produk_id: 0, 
@@ -135,7 +138,6 @@ export default function InputDataPage() {
       });
 
       const result = await res.json();
-      // console.log(result)
 
       if (res.ok) {
         setMessage({ text: `Produk ${editMode.type === 'produk' ? 'diperbarui' : 'ditambahkan'}`, variant: "success" });
@@ -235,7 +237,8 @@ export default function InputDataPage() {
       nama_produk: produk.nama_produk,
       kategori: produk.kategori,
       harga: produk.harga,
-      stok: produk.stok
+      stok: produk.stok,
+      tanggal_kadaluarsa: produk.tanggal_kadaluarsa || ""
     });
     setEditMode({ type: 'produk', id: produk.id });
   };
@@ -339,7 +342,7 @@ export default function InputDataPage() {
 
   // Reset forms
   const resetProdukForm = () => {
-    setFormProduk({ nama_produk: "", kategori: "Elektronik", harga: 0, stok: 0 });
+    setFormProduk({ nama_produk: "", kategori: "Elektronik", harga: 0, stok: 0, tanggal_kadaluarsa: "" });
     setEditMode({ type: '' });
   };
 
@@ -437,19 +440,27 @@ export default function InputDataPage() {
                     </Form.Group>
                   </Col>
                 </Row>
-
-               
-
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Tanggal Kadaluarsa (Opsional)</Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="tanggal_kadaluarsa"
+                        value={formProduk.tanggal_kadaluarsa || ""}
+                        onChange={handleProdukChange}
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
 
                 <div className="d-flex justify-content-end gap-2">
-                <a href="/import">
+                  <a href="/import">
                     <Button variant="secondary">
                       <FontAwesomeIcon icon={faUpload} className="me-2" />
                       Import
                     </Button>
                   </a>
-               
-
 
                   {editMode.type === 'produk' && (
                     <Button variant="secondary" onClick={resetProdukForm}>
@@ -483,11 +494,12 @@ export default function InputDataPage() {
               </h5>
             </Card.Header>
             <Card.Body>
+
               {loading ? (
                 <div className="text-center py-4">
-                   <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
                 </div>
               ) : (
                 <Table striped bordered hover responsive>
@@ -498,36 +510,44 @@ export default function InputDataPage() {
                       <th>Kategori</th>
                       <th>Harga</th>
                       <th>Stok</th>
+                      <th>Kadaluarsa</th>
                       <th>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {produkList.map((produk, index) => (
-                      <tr key={produk.id}>
-                        <td>{index + 1}</td>
-                        <td>{produk.nama_produk}</td>
-                        <td>{produk.kategori}</td>
-                        <td>Rp {produk.harga.toLocaleString("id-ID")}</td>
-                        <td>{produk.stok}</td>
-                        <td>
-                          <Button 
-                            variant="warning" 
-                            size="sm" 
-                            className="me-2"
-                            onClick={() => editProduk(produk)}
-                          >
-                            <FontAwesomeIcon icon={faEdit} />
-                          </Button>
-                          <Button 
-                            variant="danger" 
-                            size="sm"
-                            onClick={() => deleteProduk(produk.id)}
-                          >
-                            <FontAwesomeIcon icon={faTimes} />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                    {produkList.map((produk, index) => {
+                      return (
+                        <tr key={produk.id} >
+                          <td>{index + 1}</td>
+                          <td>{produk.nama_produk}</td>
+                          <td>{produk.kategori}</td>
+                          <td>Rp {produk.harga.toLocaleString("id-ID")}</td>
+                          <td>{produk.stok}</td>
+                          <td>
+                            {produk.tanggal_kadaluarsa ? 
+                              new Date(produk.tanggal_kadaluarsa).toLocaleDateString('id-ID') : 
+                              '-'}
+                          </td>
+                          <td>
+                            <Button 
+                              variant="warning" 
+                              size="sm" 
+                              className="me-2"
+                              onClick={() => editProduk(produk)}
+                            >
+                              <FontAwesomeIcon icon={faEdit} />
+                            </Button>
+                            <Button 
+                              variant="danger" 
+                              size="sm"
+                              onClick={() => deleteProduk(produk.id)}
+                            >
+                              <FontAwesomeIcon icon={faTimes} />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </Table>
               )}
@@ -625,7 +645,7 @@ export default function InputDataPage() {
               {loading ? (
                 <div className="text-center py-4">
                   <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden">Loading...</span>
                   </div>
                 </div>
               ) : (
@@ -762,7 +782,7 @@ export default function InputDataPage() {
               {loading ? (
                 <div className="text-center py-4">
                   <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden">Loading...</span>
                   </div>
                 </div>
               ) : (

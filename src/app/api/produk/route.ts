@@ -7,6 +7,7 @@ interface Produk {
   kategori: string;
   harga: number;
   stok: number;
+  tanggal_kadaluarsa?: string;
 }
 
 interface ProdukWithRelations extends Produk {
@@ -15,12 +16,18 @@ interface ProdukWithRelations extends Produk {
 }
 
 async function getAllProduk(): Promise<ProdukWithRelations[]> {
-  return await prisma.produk.findMany({
+  const produkList = await prisma.produk.findMany({
     include: {
       BarangMasuk: true,
       BarangKeluar: true,
     },
   });
+  return produkList.map((produk) => ({
+    ...produk,
+    tanggal_kadaluarsa: produk.tanggal_kadaluarsa
+      ? produk.tanggal_kadaluarsa.toISOString()
+      : undefined,
+  }));
 }
 
 
@@ -77,7 +84,7 @@ export async function GET(request: Request, { params }: { params?: { id: string 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { nama_produk, kategori, harga, stok } = body;
+    const { nama_produk, kategori, harga, stok, tanggal_kadaluarsa } = body;
 
     // Validate input data
     const validationError = validateProdukData(body);
@@ -95,6 +102,9 @@ export async function POST(request: Request) {
         kategori,
         harga: Number(harga),
         stok: Number(stok),
+        tanggal_kadaluarsa: tanggal_kadaluarsa
+          ? new Date(tanggal_kadaluarsa)
+          : null,
       },
     });
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Card, Button, Modal, Form, Alert, Container, Table, InputGroup } from "react-bootstrap";
+import { Card, Button, Form, Alert, Container, Table, InputGroup } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUpload, faCheck, faTimes, faSpinner, faFileImport } from "@fortawesome/free-solid-svg-icons";
+import { faUpload, faSpinner, faDownload } from "@fortawesome/free-solid-svg-icons";
 import { parse } from "papaparse";
 
 interface Produk {
@@ -11,8 +11,25 @@ interface Produk {
   nama_produk: string;
   harga: number;
   stok: number;
-  kategori: string; // Tambahkan field kategori
+  kategori: string;
+  tanggal_kadaluarsa?: string;
 }
+
+const DEFAULT_KATEGORI = "Umum";
+const KATEGORI_OPTIONS = [
+  "Umum",
+  "Elektronik",
+  "Peralatan Rumah Tangga",
+  "Makanan",
+  "Minuman"
+];
+
+const SAMPLE_CSV = `nama,harga,stok,kategori,tanggal_kadaluarsa
+Lampu LED,25000,50,Elektronik,2025-12-31
+Panci Aluminium,120000,30,Peralatan Rumah Tangga,
+Teh Celup,15000,100,Makanan,2024-06-30
+Mouse Wireless,85000,25,Elektronik,
+Susu UHT,18000,75,Minuman,2023-11-15`;
 
 export default function ImportProdukPage() {
   const [produkList, setProdukList] = useState<Produk[]>([]);
@@ -20,9 +37,20 @@ export default function ImportProdukPage() {
   const [importing, setImporting] = useState(false);
   const [message, setMessage] = useState<{ text: string; variant: string } | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
-  const [defaultKategori, setDefaultKategori] = useState<string>("Umum"); // Default kategori
+  const [defaultKategori, setDefaultKategori] = useState<string>(DEFAULT_KATEGORI);
 
-  // Handle file upload
+  const downloadSampleCSV = () => {
+    const blob = new Blob([SAMPLE_CSV], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "contoh_produk.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -41,7 +69,8 @@ export default function ImportProdukPage() {
               nama_produk: row.nama.trim(),
               harga: Number(row.harga),
               stok: Number(row.stok),
-              kategori: row.kategori || defaultKategori // Gunakan kategori dari CSV atau default
+              kategori: row.kategori?.trim() || defaultKategori,
+              tanggal_kadaluarsa: row.tanggal_kadaluarsa || undefined
             }));
 
           setProdukList(parsedData);
@@ -50,7 +79,6 @@ export default function ImportProdukPage() {
             variant: "success" 
           });
         } catch (error) {
-          console.error("Error parsing CSV:", error);
           setMessage({ 
             text: "Format file tidak sesuai. Pastikan format: nama,harga,stok,kategori", 
             variant: "danger" 
@@ -59,15 +87,13 @@ export default function ImportProdukPage() {
           setLoading(false);
         }
       },
-      error: (error) => {
-        console.error("CSV parsing error:", error);
+      error: () => {
         setMessage({ text: "Gagal memproses file CSV", variant: "danger" });
         setLoading(false);
       }
     });
   }, [defaultKategori]);
 
-  // Handle import to API
   const handleImport = async () => {
     if (produkList.length === 0) {
       setMessage({ text: "Tidak ada data untuk diimport", variant: "warning" });
@@ -78,41 +104,35 @@ export default function ImportProdukPage() {
     setMessage(null);
 
     try {
-      let successCount = 0;
-      let errorCount = 0;
-      const errors: string[] = [];
-
-      for (const produk of produkList) {
-        try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/produk`, {
+      const results = await Promise.allSettled(
+        produkList.map(produk => 
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/produk`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               nama_produk: produk.nama_produk,
               harga: produk.harga,
               stok: produk.stok,
-              kategori: produk.kategori || defaultKategori // Pastikan kategori selalu ada
+              kategori: produk.kategori || defaultKategori,
+              tanggal_kadaluarsa: produk.tanggal_kadaluarsa
             }),
-          });
+          })
+        )
+      );
 
-          const result = await res.json();
-
-          if (!res.ok) {
-            throw new Error(result.message || "Gagal menambahkan produk");
-          }
-
-          successCount++;
-        } catch (error) {
-          errorCount++;
-          errors.push(`Gagal menambahkan ${produk.nama_produk}: ${error instanceof Error ? error.message : String(error)}`);
-        }
-      }
+      const successCount = results.filter(r => r.status === "fulfilled" && r.value.ok).length;
+      const errorCount = results.filter(r => r.status === "rejected" || !r.value.ok).length;
 
       if (errorCount > 0) {
+        const errors = results
+          .map((r, i) => 
+            r.status === "rejected" ? `Produk ${produkList[i].nama_produk}: ${r.reason.message}` :
+            !r.value.ok ? `Produk ${produkList[i].nama_produk}: Gagal menyimpan` : null
+          )
+          .filter(Boolean);
+
         setMessage({
-          text: `Import selesai dengan ${successCount} sukses dan ${errorCount} gagal. ${errors.join(' ')}`,
+          text: `Import selesai dengan ${successCount} sukses dan ${errorCount} gagal. ${errors.join(', ')}`,
           variant: "warning"
         });
       } else {
@@ -123,10 +143,11 @@ export default function ImportProdukPage() {
         setProdukList([]);
         setFileName(null);
       }
-
     } catch (error) {
-      console.error("Error:", error);
-      setMessage({ text: "Terjadi kesalahan saat mengimport", variant: "danger" });
+      setMessage({ 
+        text: "Terjadi kesalahan saat mengimport", 
+        variant: "danger" 
+      });
     } finally {
       setImporting(false);
     }
@@ -134,7 +155,6 @@ export default function ImportProdukPage() {
 
   return (
     <Container className="py-4">
-      {/* Message Alert */}
       {message && (
         <Alert variant={message.variant} onClose={() => setMessage(null)} dismissible>
           {message.text}
@@ -162,39 +182,47 @@ export default function ImportProdukPage() {
             )}
           </Button>
         </Card.Header>
+        
         <Card.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Kategori Default</Form.Label>
-            <Form.Select 
-              value={defaultKategori}
-              onChange={(e) => setDefaultKategori(e.target.value)}
-            >
-              <option value="Umum">Umum</option>
-              <option value="Elektronik">Elektronik</option>
-              <option value="Peralatan Rumah Tangga">Peralatan Rumah Tangga</option>
-              <option value="Makanan">Makanan</option>
-              <option value="Minuman">Minuman</option>
-            </Form.Select>
-            <Form.Text muted>Kategori ini akan digunakan jika tidak ada kolom kategori di CSV</Form.Text>
-          </Form.Group>
-
-          <Form.Group className="mb-4">
-            <Form.Label>Upload File CSV</Form.Label>
-            <InputGroup>
-              <Form.Control
-                type="file"
-                accept=".csv"
-                onChange={handleFileUpload}
+          <div className="mb-4">
+            <Form.Group className="mb-3">
+              <Form.Label>Kategori Default</Form.Label>
+              <Form.Select 
+                value={defaultKategori}
+                onChange={(e) => setDefaultKategori(e.target.value)}
                 disabled={loading || importing}
-              />
-            </InputGroup>
-            <Form.Text muted>
-              Format CSV harus mengandung kolom: nama,harga,stok (kategori opsional). Contoh:<br />
-              nama,harga,stok,kategori<br />
-              Lampu LED,25000,50,Elektronik<br />
-              Panci Kecil,16000,30,Peralatan Rumah Tangga
-            </Form.Text>
-          </Form.Group>
+              >
+                {KATEGORI_OPTIONS.map(kategori => (
+                  <option key={kategori} value={kategori}>{kategori}</option>
+                ))}
+              </Form.Select>
+              <Form.Text muted>Kategori ini akan digunakan jika tidak ada kolom kategori di CSV</Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Upload File CSV</Form.Label>
+              <InputGroup>
+                <Form.Control
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                  disabled={loading || importing}
+                />
+              </InputGroup>
+              <Form.Text muted>
+                Format CSV harus mengandung kolom: nama,harga,stok (kategori opsional).
+              </Form.Text>
+            </Form.Group>
+
+            <Button 
+              variant="outline-secondary" 
+              onClick={downloadSampleCSV}
+              className="mt-2"
+            >
+              <FontAwesomeIcon icon={faDownload} className="me-2" />
+              Download Contoh CSV
+            </Button>
+          </div>
 
           {fileName && (
             <div className="mb-3">
@@ -212,12 +240,14 @@ export default function ImportProdukPage() {
                   <th>Harga</th>
                   <th>Stok</th>
                   <th>Kategori</th>
+                  <th>Tanggal Kadaluarsa</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-4">
+                    <td colSpan={6} className="text-center py-4">
+                      <FontAwesomeIcon icon={faSpinner} spin className="me-2" />
                       Memproses file...
                     </td>
                   </tr>
@@ -229,11 +259,12 @@ export default function ImportProdukPage() {
                       <td>Rp {item.harga.toLocaleString('id-ID')}</td>
                       <td>{item.stok}</td>
                       <td>{item.kategori || defaultKategori}</td>
+                      <td>{item.tanggal_kadaluarsa || "-"}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="text-center py-4">
+                    <td colSpan={6} className="text-center py-4">
                       Tidak ada data produk. Silakan upload file CSV.
                     </td>
                   </tr>

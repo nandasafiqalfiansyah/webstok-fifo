@@ -7,6 +7,7 @@ interface Produk {
     kategori: string;
     harga: number;
     stok: number;
+    tanggal_kadaluarsa?: string;
   }
 
 function validateProdukData(data: Partial<Produk>): string | null {
@@ -17,13 +18,12 @@ function validateProdukData(data: Partial<Produk>): string | null {
     return null;
   }
 
-
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
     try {
       const { id } = params;
       const body = await request.json();
-      const { nama_produk, kategori, harga, stok } = body;
-  
+      const { nama_produk, kategori, harga, stok, tanggal_kadaluarsa } = body;
+
       // Validate ID
       const produkId = parseInt(id);
       if (isNaN(produkId)) {
@@ -50,6 +50,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
           kategori,
           harga: Number(harga),
           stok: Number(stok),
+          tanggal_kadaluarsa: tanggal_kadaluarsa ? new Date(tanggal_kadaluarsa) : null,
         },
       });
       return NextResponse.json(
