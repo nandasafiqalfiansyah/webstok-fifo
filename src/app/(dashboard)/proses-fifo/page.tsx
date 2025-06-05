@@ -13,6 +13,7 @@ type Produk = {
   kategori: string;
   harga: number;
   stok: number;
+  tanggal_kadaluarsa: string;
   BarangMasuk: { id: number; tanggal_masuk: string; jumlah: number }[];
   BarangKeluar: { id: number; tanggal_keluar: string; jumlah: number }[];
 };
@@ -42,7 +43,7 @@ export default function ProsesFifo() {
 
     autoTable(doc, {
       startY: 20,
-      head: [["No", "Nama Produk", "Kategori", "Harga", "Stok Awal", "Sisa Stok", "Rekomendasi"]],
+      head: [["No", "Nama Produk", "Kategori", "Harga", "Kadaluarsa", "Stok Awal", "Sisa Stok", "Rekomendasi"]],
       body: produkList.map((produk, index) => {
         let sisaStok = produk.stok;
         produk.BarangKeluar.forEach((bk) => {
@@ -54,6 +55,7 @@ export default function ProsesFifo() {
           produk.nama_produk,
           produk.kategori,
           `Rp ${produk.harga.toLocaleString("id-ID")}`,
+          produk.tanggal_kadaluarsa ? new Date(produk.tanggal_kadaluarsa).toLocaleDateString('id-ID') : '-',
           produk.stok,
           sisaStok,
           rekomendasi,
@@ -86,6 +88,7 @@ export default function ProsesFifo() {
                   <th>Kategori</th>
                   <th>Harga</th>
                   <th>Stok Awal</th>
+                  <th>Kadaluarsa</th>
                   <th>Barang Masuk</th>
                   <th>Barang Keluar</th>
                 </tr>
@@ -93,7 +96,7 @@ export default function ProsesFifo() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-4">
+                    <td colSpan={8} className="text-center py-4">
                       <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                       </div>
@@ -107,6 +110,11 @@ export default function ProsesFifo() {
                       <td>{produk.kategori}</td>
                       <td>Rp {produk.harga.toLocaleString("id-ID")}</td>
                       <td>{produk.stok}</td>
+                     <td>
+                            {produk.tanggal_kadaluarsa ? 
+                              new Date(produk.tanggal_kadaluarsa).toLocaleDateString('id-ID') : 
+                              '-'}
+                      </td>
                       <td>
                         {produk.BarangMasuk.map((bm) => (
                           <div key={bm.id}>
@@ -141,6 +149,7 @@ export default function ProsesFifo() {
                   <th>Nama Produk</th>
                   <th>Kategori</th>
                   <th>Harga</th>
+                  <th>Kadaluarsa</th>
                   <th>Stok Awal</th>
                   <th>Sisa Stok</th>
                 </tr>
@@ -148,7 +157,7 @@ export default function ProsesFifo() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-4">
+                    <td colSpan={7} className="text-center py-4">
                       <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                       </div>
@@ -166,6 +175,11 @@ export default function ProsesFifo() {
                         <td>{produk.nama_produk}</td>
                         <td>{produk.kategori}</td>
                         <td>Rp {produk.harga.toLocaleString("id-ID")}</td>
+                        <td>
+                            {produk.tanggal_kadaluarsa ? 
+                              new Date(produk.tanggal_kadaluarsa).toLocaleDateString('id-ID') : 
+                              '-'}
+                          </td>
                         <td>{produk.stok}</td>
                         <td>{sisaStok}</td>
                       </tr>
@@ -189,13 +203,14 @@ export default function ProsesFifo() {
                   <th>Nama Produk</th>
                   <th>Stok Awal</th>
                   <th>Sisa Stok</th>
+                  <th>Kadaluarsa</th>
                   <th>Rekomendasi</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-4">
+                    <td colSpan={6} className="text-center py-4">
                       <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                       </div>
@@ -218,6 +233,11 @@ export default function ProsesFifo() {
                         <td>{produk.nama_produk}</td>
                         <td>{produk.stok}</td>
                         <td>{sisaStok}</td>
+                        <td>
+                            {produk.tanggal_kadaluarsa ? 
+                              new Date(produk.tanggal_kadaluarsa).toLocaleDateString('id-ID') : 
+                              '-'}
+                          </td>
                         <td>{rekomendasi}</td>
                       </tr>
                     );
