@@ -76,7 +76,7 @@ export default function ProsesFifo() {
         </Button>
       </div>
 
-      {/* <Card className="mb-4 shadow-sm">
+      <Card className="mb-4 shadow-sm">
         <Card.Body>
           <h4 className="mb-3">Tabel 1: Data Mentah (Sebelum FIFO)</h4>
           <div className="table-responsive">
@@ -136,11 +136,11 @@ export default function ProsesFifo() {
             </Table>
           </div>
         </Card.Body>
-      </Card> */}
+      </Card>
 
       <Card className="mb-4 shadow-sm">
         <Card.Body>
-          <h4 className="mb-3">Tabel 1: Data FIFO</h4>
+          <h4 className="mb-3">Tabel 2: Data FIFO</h4>
           <div className="table-responsive">
             <Table striped bordered hover>
               <thead className="bg-light">
@@ -194,7 +194,7 @@ export default function ProsesFifo() {
 
       <Card className="mb-4 shadow-sm">
         <Card.Body>
-          <h4 className="mb-3">Tabel 2: Analisis & Rekomendasi</h4>
+          <h4 className="mb-3">Tabel 3: Analisis & Rekomendasi</h4>
           <div className="table-responsive">
             <Table striped bordered hover>
               <thead className="bg-light">
