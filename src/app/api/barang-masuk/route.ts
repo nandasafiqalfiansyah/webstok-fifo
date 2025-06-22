@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         produk: {
           select: {
             nama_produk: true,
-            kategori: true
+            kategori: true,
           }
         }
       },
@@ -47,9 +47,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { tanggal_masuk, jumlah, produk_id } = await request.json();
+    const { tanggal_masuk, jumlah, produk_id, masa_exp } = await request.json();
 
-    if (!tanggal_masuk || !jumlah || !produk_id) {
+    if (!tanggal_masuk || !jumlah || !produk_id || !masa_exp) {
       return NextResponse.json({
         status: 400,
         message: "Semua field harus diisi"
@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       data: {
         tanggal_masuk: new Date(tanggal_masuk),
         jumlah: parseInt(jumlah),
+        masa_exp: new Date(masa_exp),
         produk_id: parseInt(produk_id)
       }
     });

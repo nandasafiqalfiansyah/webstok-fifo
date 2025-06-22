@@ -8,40 +8,45 @@ datasource db {
 }
 
 model Admin {
-  id        Int    @id @default(autoincrement())
-  nama      String @db.VarChar(52)
-  email     String @unique @db.VarChar(46)
-  password  String @db.VarChar(72)
+  id        Int      @id @default(autoincrement())
+  nama      String   @db.VarChar(52)
+  email     String   @unique @db.VarChar(46)
+  password  String   @db.VarChar(72)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Produk {
-  id           Int    @id @default(autoincrement())
-  nama_produk  String @db.VarChar(32) @unique
-  kategori     String @db.VarChar(16)
-  harga        Int
-  stok         Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
+  id                 Int            @id @default(autoincrement())
+  nama_produk        String         @unique @db.VarChar(32)
+  kategori           String         @db.VarChar(16)
+  harga              Int
+  stok               Int
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
   tanggal_kadaluarsa DateTime?
-  BarangMasuk  BarangMasuk[]
-  BarangKeluar BarangKeluar[]
+  BarangKeluar       BarangKeluar[]
+  BarangMasuk        BarangMasuk[]
 }
 
 model BarangMasuk {
-  id            Int    @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   tanggal_masuk DateTime @default(now())
   jumlah        Int
-  produk        Produk @relation(fields: [produk_id], references: [id], onDelete: Cascade)
   produk_id     Int
+  masa_exp      DateTime?
+  produk        Produk   @relation(fields: [produk_id], references: [id], onDelete: Cascade)
+
+  @@index([produk_id], map: "BarangMasuk_produk_id_fkey")
 }
 
 model BarangKeluar {
-  id             Int    @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   tanggal_keluar DateTime @default(now())
   jumlah         Int
-  produk         Produk @relation(fields: [produk_id], references: [id], onDelete: Cascade)
   produk_id      Int
+  masa_exp       DateTime?
+  produk         Produk   @relation(fields: [produk_id], references: [id], onDelete: Cascade)
+
+  @@index([produk_id], map: "BarangKeluar_produk_id_fkey")
 }

@@ -4,10 +4,10 @@ import prisma from "./../../auth/option";
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
-    const { tanggal_masuk, jumlah, produk_id } = await request.json();
+    const { tanggal_masuk, jumlah, produk_id, masa_exp } = await request.json();
 
     // Validasi input
-    if (!tanggal_masuk || !jumlah || !produk_id) {
+    if (!tanggal_masuk || !jumlah || !produk_id || !masa_exp) {
       return NextResponse.json({
         status: 400,
         message: "Semua field harus diisi"
@@ -32,7 +32,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       data: {
         tanggal_masuk: new Date(tanggal_masuk),
         jumlah: parseInt(jumlah),
-        produk_id: parseInt(produk_id)
+        produk_id: parseInt(produk_id),
+        masa_exp: new Date(masa_exp)
       }
     });
 

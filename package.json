@@ -10,6 +10,8 @@
     "lint:fix": "next lint --fix",
     "test": "vitest",
     "migrate:seed": "prisma generate && prisma migrate dev && node prisma/seed.js",
+    "migrate:create": "prisma migrate dev --create-only",
+    "migrate": "prisma migrate dev",
     "seed": "node prisma/seed.js"
   },
   "prisma": {
