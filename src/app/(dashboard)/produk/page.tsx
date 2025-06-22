@@ -546,6 +546,20 @@ export default function InputDataPage() {
                     </Form.Group>
                   </Col>
                 </Row>
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>Tanggal Kadaluarsa (Opsional)</Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="tanggal_kadaluarsa"
+                        value={formProduk.tanggal_kadaluarsa || ""}
+                        onChange={handleProdukChange}
+                        disabled={loading.form}
+                      />
+                    </Form.Group>
+                  </Col>
+                  </Row>
 
                 <div className="d-flex justify-content-end gap-2">
                   <a href="/import">
@@ -605,7 +619,8 @@ export default function InputDataPage() {
                       <th>Kategori</th>
                       <th>Harga</th>
                       <th>Stok</th>
-                      <th>ipe - Kadaluarsa - pcs</th>
+                      <th>kadaluarsa</th>
+                      <th>Tipe - Kadaluarsa - pcs</th>
                       <th>Aksi</th>
                     </tr>
                   </thead>
@@ -617,6 +632,7 @@ export default function InputDataPage() {
                         <td>{produk.kategori}</td>
                         <td>Rp {produk.harga.toLocaleString("id-ID")}</td>
                         <td>{produk.stok}</td>
+                        <td>{formatDate(produk.tanggal_kadaluarsa ?? null)}</td>
                         <td>
                             <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
                               {/* Untuk Barang Masuk */}

@@ -65,7 +65,7 @@ export default function ProsesFifo() {
 
     autoTable(doc, {
       startY: 20,
-      head: [["No", "Nama Produk", "Kategori", "Harga", "Stok Awal", "Sisa Stok", "Rekomendasi"]],
+      head: [["No", "Nama Produk", "Kategori", "Harga","Kadaluarsa" , "Stok Awal", "Sisa Stok", "Rekomendasi"]],
       body: produkList.map((produk, index) => {
         const sisaStok = calculateRemainingStock(produk);
         const rekomendasi = sisaStok < 10 ? "Perlu restock" : "Stok masih aman";
@@ -75,6 +75,7 @@ export default function ProsesFifo() {
           produk.nama_produk,
           produk.kategori,
           `Rp ${produk.harga.toLocaleString("id-ID")}`,
+          formatDate(produk.tanggal_kadaluarsa),
           produk.stok,
           sisaStok,
           rekomendasi,
@@ -157,6 +158,7 @@ export default function ProsesFifo() {
                   <th>Kategori</th>
                   <th>Harga</th>
                   <th>Stok Awal</th>
+                  <th>Kadaluarsa</th>
                   <th>Transaksi</th>
                 </tr>
               </thead>
@@ -169,6 +171,7 @@ export default function ProsesFifo() {
                       <td>{produk.kategori}</td>
                       <td>Rp {produk.harga.toLocaleString("id-ID")}</td>
                       <td>{produk.stok}</td>
+                      <td>{formatDate(produk.tanggal_kadaluarsa)}</td>
                       <td>{renderTransactionDetails(produk)}</td>
                     </tr>
                   ))
@@ -191,6 +194,7 @@ export default function ProsesFifo() {
                   <th>Nama Produk</th>
                   <th>Kategori</th>
                   <th>Harga</th>
+                  <th>Kadaluarsa</th>
                   <th>Stok Awal</th>
                   <th>Sisa Stok</th>
                 </tr>
@@ -205,6 +209,7 @@ export default function ProsesFifo() {
                         <td>{produk.nama_produk}</td>
                         <td>{produk.kategori}</td>
                         <td>Rp {produk.harga.toLocaleString("id-ID")}</td>
+                        <td>{formatDate(produk.tanggal_kadaluarsa)}</td>
                         <td>{produk.stok}</td>
                         <td>{sisaStok}</td>
                       </tr>
@@ -229,6 +234,7 @@ export default function ProsesFifo() {
                   <th>Nama Produk</th>
                   <th>Stok Awal</th>
                   <th>Sisa Stok</th>
+                  <th>Kadaluarsa</th>
                   <th>Rekomendasi</th>
                 </tr>
               </thead>
@@ -242,6 +248,7 @@ export default function ProsesFifo() {
                         <td>{produk.nama_produk}</td>
                         <td>{produk.stok}</td>
                         <td>{sisaStok}</td>
+                        <td>{formatDate(produk.tanggal_kadaluarsa)}</td>
                         <td>{renderStockRecommendation(sisaStok)}</td>
                       </tr>
                     );
