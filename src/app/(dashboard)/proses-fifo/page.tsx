@@ -20,6 +20,13 @@ interface BarangKeluar {
   jumlah: number;
 }
 
+interface BarangKeluarDetail {
+  tanggal_keluar: string;
+  jumlah: number;
+  dari_masuk_id: number;
+  masa_exp?: string;
+}
+
 interface Produk {
   id: number;
   nama_produk: string;
@@ -40,7 +47,7 @@ export default function ProsesFifo() {
       setLoading(true);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/produk`);
       if (!res.ok) throw new Error("Failed to fetch products");
-      
+
       const data = await res.json();
       setProdukList(data.data || []);
     } catch (error) {
@@ -65,11 +72,11 @@ export default function ProsesFifo() {
 
     autoTable(doc, {
       startY: 20,
-      head: [["No", "Nama Produk", "Kategori", "Harga","Kadaluarsa" , "Stok Awal", "Sisa Stok", "Rekomendasi"]],
+      head: [["No", "Nama Produk", "Kategori", "Harga", "Kadaluarsa", "Stok Awal", "Sisa Stok", "Rekomendasi"]],
       body: produkList.map((produk, index) => {
         const sisaStok = calculateRemainingStock(produk);
         const rekomendasi = sisaStok < 10 ? "Perlu restock" : "Stok masih aman";
-        
+
         return [
           index + 1,
           produk.nama_produk,
@@ -90,16 +97,53 @@ export default function ProsesFifo() {
     return produk.BarangKeluar.reduce((acc, bk) => acc - bk.jumlah, produk.stok);
   };
 
+  const simulateFifo = (
+    barangMasuk: BarangMasuk[],
+    barangKeluar: BarangKeluar[]
+  ): BarangKeluarDetail[] => {
+    const masukQueue = [...barangMasuk].sort(
+      (a, b) => new Date(a.tanggal_masuk).getTime() - new Date(b.tanggal_masuk).getTime()
+    );
+
+    const hasilKeluar: BarangKeluarDetail[] = [];
+
+    for (const keluar of barangKeluar) {
+      let sisaKeluar = keluar.jumlah;
+
+      while (sisaKeluar > 0 && masukQueue.length > 0) {
+        const masuk = masukQueue[0];
+        const jumlahDiambil = Math.min(sisaKeluar, masuk.jumlah);
+
+        hasilKeluar.push({
+          tanggal_keluar: keluar.tanggal_keluar,
+          jumlah: jumlahDiambil,
+          dari_masuk_id: masuk.id,
+          masa_exp: masuk.masa_exp,
+        });
+
+        masuk.jumlah -= jumlahDiambil;
+        sisaKeluar -= jumlahDiambil;
+
+        if (masuk.jumlah === 0) {
+          masukQueue.shift();
+        }
+      }
+    }
+
+    return hasilKeluar;
+  };
+
   const renderTransactionDetails = (produk: Produk) => {
     const hasMasuk = produk.BarangMasuk?.length > 0;
     const hasKeluar = produk.BarangKeluar?.length > 0;
+    const fifoKeluar = simulateFifo(produk.BarangMasuk, produk.BarangKeluar);
 
     if (!hasMasuk && !hasKeluar) {
       return <div className="text-muted">Tidak ada transaksi</div>;
     }
 
     return (
-      <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
+      <div style={{ maxHeight: '140px', overflowY: 'auto' }}>
         {hasMasuk && produk.BarangMasuk.map((masuk, idx) => (
           <div key={`masuk-${idx}`} className="mb-1">
             <Badge bg="success" className="me-2">Masuk</Badge>
@@ -107,11 +151,15 @@ export default function ProsesFifo() {
             {masuk.masa_exp && ` (Exp: ${formatDate(masuk.masa_exp)})`}
           </div>
         ))}
-        
-        {hasKeluar && produk.BarangKeluar.map((keluar, idx) => (
+
+        {fifoKeluar.map((keluar, idx) => (
           <div key={`keluar-${idx}`} className="mb-1">
             <Badge bg="danger" className="me-2">Keluar</Badge>
             {formatDate(keluar.tanggal_keluar)} - {keluar.jumlah} pcs
+            <span className="ms-2 text-muted small">
+              dari Masuk ID {keluar.dari_masuk_id}
+              {keluar.masa_exp && ` (Exp: ${formatDate(keluar.masa_exp)})`}
+            </span>
           </div>
         ))}
       </div>
@@ -145,7 +193,7 @@ export default function ProsesFifo() {
         </Button>
       </div>
 
-      {/* Raw Data Table */}
+      {/* Tabel Data Mentah */}
       <Card className="mb-4 shadow-sm">
         <Card.Body>
           <h4 className="mb-3">Tabel 1: Data Mentah (Sebelum FIFO)</h4>
@@ -182,7 +230,7 @@ export default function ProsesFifo() {
         </Card.Body>
       </Card>
 
-      {/* FIFO Results Table */}
+      {/* Tabel FIFO */}
       <Card className="mb-4 shadow-sm">
         <Card.Body>
           <h4 className="mb-3">Tabel 2: Data FIFO</h4>
@@ -222,7 +270,7 @@ export default function ProsesFifo() {
         </Card.Body>
       </Card>
 
-      {/* Analysis Table */}
+      {/* Tabel Rekomendasi */}
       <Card className="mb-4 shadow-sm">
         <Card.Body>
           <h4 className="mb-3">Tabel 3: Analisis & Rekomendasi</h4>
