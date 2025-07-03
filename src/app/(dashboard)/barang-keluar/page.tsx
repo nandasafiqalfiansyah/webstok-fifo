@@ -257,6 +257,7 @@ export default function BarangKeluarPage() {
               <thead>
                 <tr>
                   <th>No</th>
+                  <th>Id Transaksi</th>
                   <th>Nama Produk</th>
                   <th>Kategori</th>
                   <th>Tanggal Keluar</th>
@@ -277,6 +278,7 @@ export default function BarangKeluarPage() {
                   filteredList.map((item, index) => (
                     <tr key={item.id}>
                       <td>{index + 1}</td>
+                      <td>{item.id}</td>
                       <td>{item.produk_nama}</td>
                       <td>{item.kategori}</td>
                       <td>{formatDate(item.tanggal_keluar)}</td>
