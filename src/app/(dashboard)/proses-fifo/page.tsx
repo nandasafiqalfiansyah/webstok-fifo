@@ -38,7 +38,7 @@ interface Produk {
   nama_produk: string;
   kategori: string;
   harga: number;
-  stok: number;
+  stok: number; // This is the initial stock
   tanggal_kadaluarsa?: string;
   BarangMasuk: BarangMasuk[];
   BarangKeluar: BarangKeluar[];
@@ -108,8 +108,8 @@ export default function ProsesFifo() {
             index + 1,
             produk.nama_produk,
             produk.kategori,
-            produk.stok,
-            sisaStok,
+            produk.stok, // Initial stock
+            sisaStok,   // Remaining stock
             status
           ];
         }),
@@ -175,8 +175,9 @@ export default function ProsesFifo() {
   }, [produkList]);
 
   const calculateRemainingStock = (produk: Produk) => {
+    const totalMasuk = produk.BarangMasuk.reduce((sum, bm) => sum + bm.jumlah, 0);
     const totalKeluar = produk.BarangKeluar.reduce((sum, bk) => sum + bk.jumlah, 0);
-    return Math.max(0, produk.stok - totalKeluar);
+    return Math.max(0, totalMasuk - totalKeluar);
   };
 
   const simulateFifo = (
