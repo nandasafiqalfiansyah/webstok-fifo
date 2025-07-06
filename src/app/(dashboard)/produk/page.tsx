@@ -211,7 +211,7 @@ export default function InputDataPage() {
           <Tabs defaultActiveKey="produk" className="mb-4">
             <Tab eventKey="produk" title="Produk">
               <Card className="border-0 shadow-sm">
-                <Card.Header className="bg-light">
+                <Card.Header>
                   <h6 className="mb-0">
                     {editMode.type === 'produk' ? 'Edit Produk' : 'Tambah Produk Baru'}
                   </h6>
@@ -267,7 +267,7 @@ export default function InputDataPage() {
                         </Form.Group>
                       </Col>
                       <Col md={6}>
-                        <Form.Group className="mb-3">
+                        {/* <Form.Group className="mb-3">
                           <Form.Label>Stok</Form.Label>
                           <Form.Control
                             type="number"
@@ -279,7 +279,7 @@ export default function InputDataPage() {
                             placeholder="Contoh: 10"
                             disabled={loading.form}
                           />
-                        </Form.Group>
+                        </Form.Group> */}
                       </Col>
                     </Row>
                     <Row>
