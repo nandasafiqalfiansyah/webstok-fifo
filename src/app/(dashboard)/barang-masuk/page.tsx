@@ -177,7 +177,7 @@ export default function BarangMasukPage() {
       }
 
       setMessage({ 
-        text: `Data barang masuk ${editId ? 'diperbarui' : 'ditambahkan'}`, 
+        text: `Data barang masuk ${editId ? 'berhasil diperbarui' : 'berhasil ditambahkan'}`, 
         variant: "success" 
       });
       
@@ -299,7 +299,7 @@ export default function BarangMasukPage() {
         throw new Error("Gagal menghapus data");
       }
 
-      setMessage({ text: "Data barang masuk dihapus", variant: "success" });
+      setMessage({ text: "Data barang masuk berhasil dihapus", variant: "success" });
       setBarangMasukList(prev => prev.filter(item => item.id !== id));
       setFilteredList(prev => prev.filter(item => item.id !== id));
     } catch (error) {
@@ -340,14 +340,14 @@ export default function BarangMasukPage() {
       )}
 
       <Card className="shadow-sm border-0">
-        <Card.Header className="d-flex justify-content-between align-items-center py-3">
+        <Card.Header className="d-flex justify-content-between align-items-center py-3 bg-primary text-white">
           <h5 className="mb-0">
             <FontAwesomeIcon icon={faBox} className="me-2" />
             Data Barang Masuk
           </h5>
           <div>
             <Button 
-              variant="success" 
+              variant="light" 
               onClick={() => setShowImportModal(true)}
               className="me-2"
               disabled={loading.page}
@@ -356,12 +356,12 @@ export default function BarangMasukPage() {
               Import
             </Button>
             <Button 
-              variant="primary" 
+              variant="light" 
               onClick={() => setShowModal(true)}
               disabled={loading.page}
             >
               <FontAwesomeIcon icon={faPlus} className="me-2" />
-              Tambah Barang Masuk
+              Tambah Barang
             </Button>
           </div>
         </Card.Header>
@@ -370,7 +370,7 @@ export default function BarangMasukPage() {
           <Row className="mb-3">
             <Col md={6}>
               <InputGroup>
-                <InputGroup.Text>
+                <InputGroup.Text className="bg-light">
                   <FontAwesomeIcon icon={faSearch} />
                 </InputGroup.Text>
                 <Form.Control
@@ -379,6 +379,7 @@ export default function BarangMasukPage() {
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   disabled={loading.page}
+                  className="border-start-0"
                 />
               </InputGroup>
             </Col>
@@ -390,7 +391,7 @@ export default function BarangMasukPage() {
               <thead >
                 <tr>
                   <th>No</th>
-                  <th>Id transaksi</th>
+                  <th>ID Transaksi</th>
                   <th>Nama Produk</th>
                   <th>Kategori</th>
                   <th>Tanggal Masuk</th>
@@ -402,7 +403,7 @@ export default function BarangMasukPage() {
               <tbody>
                 {loading.page ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-4">
+                    <td colSpan={8} className="text-center py-4">
                       <div className="d-flex justify-content-center align-items-center">
                         <FontAwesomeIcon icon={faSpinner} spin className="me-2" />
                         Memuat data...
@@ -414,15 +415,25 @@ export default function BarangMasukPage() {
                     <tr key={item.id}>
                       <td>{index + 1}</td>
                       <td>{item.id}</td>
-                      <td>{item.produk_nama}</td>
-                      <td>{item.kategori}</td>
+                      <td className="fw-semibold">{item.produk_nama}</td>
+                      <td>
+                        <span className="badge bg-info text-dark">{item.kategori}</span>
+                      </td>
                       <td>{formatDate(item.tanggal_masuk)}</td>
-                      <td>{item.masa_exp ? formatDate(item.masa_exp) : '-'}</td>
-                      <td>{item.jumlah.toLocaleString()}</td>
+                      <td>
+                        {item.masa_exp ? (
+                          <span className={`badge ${new Date(item.masa_exp) > new Date() ? 'bg-success' : 'bg-danger'}`}>
+                            {formatDate(item.masa_exp)}
+                          </span>
+                        ) : '-'}
+                      </td>
+                      <td>
+                        <span className="badge bg-primary">{item.jumlah.toLocaleString()}</span>
+                      </td>
                       <td>
                         <div className="d-flex gap-2">
                           <Button 
-                            variant="warning" 
+                            variant="outline-warning" 
                             size="sm"
                             onClick={() => handleEdit(item.id)}
                             title="Edit"
@@ -431,7 +442,7 @@ export default function BarangMasukPage() {
                             <FontAwesomeIcon icon={faEdit} />
                           </Button>
                           <Button 
-                            variant="danger" 
+                            variant="outline-danger" 
                             size="sm"
                             onClick={() => handleDelete(item.id)}
                             title="Hapus"
@@ -445,8 +456,12 @@ export default function BarangMasukPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center py-4">
-                      {searchText ? "Tidak ada data yang sesuai dengan pencarian" : "Tidak ada data barang masuk"}
+                    <td colSpan={8} className="text-center py-4">
+                      {searchText ? (
+                        <span className="text-muted">Tidak ditemukan data yang sesuai dengan pencarian</span>
+                      ) : (
+                        <span className="text-muted">Belum ada data barang masuk</span>
+                      )}
                     </td>
                   </tr>
                 )}
@@ -559,7 +574,7 @@ export default function BarangMasukPage() {
               onChange={handleFileUpload}
               disabled={loading.import}
             />
-            <Form.Text muted>
+            <Form.Text className="text-muted">
               Format CSV harus mengandung kolom: produk_id, tanggal_masuk, jumlah (masa_exp opsional)
             </Form.Text>
           </Form.Group>
