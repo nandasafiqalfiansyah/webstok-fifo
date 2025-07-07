@@ -588,7 +588,7 @@ export default function InputDataPage() {
                     </Form.Group>
                   </Col>
                   <Col md={6}>
-                    <Form.Group className="mb-3">
+                    {/* <Form.Group className="mb-3">
                       <Form.Label>Stok</Form.Label>
                       <Form.Control
                         type="number"
@@ -600,7 +600,7 @@ export default function InputDataPage() {
                         placeholder="Contoh: 10"
                         disabled={loading.form}
                       />
-                    </Form.Group>
+                    </Form.Group> */}
                   </Col>
                 </Row>
                 <Row>
