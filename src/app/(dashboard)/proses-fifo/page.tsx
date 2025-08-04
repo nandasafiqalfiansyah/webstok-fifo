@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Button, Table, Card, Container, Spinner, Badge, Alert } from "react-bootstrap";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Button, Table, Card, Container, Spinner, Badge, Alert, Form } from "react-bootstrap";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -10,7 +10,8 @@ import {
   faInfoCircle,
   faBox,
   faArrowRightArrowLeft,
-  faLightbulb
+  faLightbulb,
+  faCalculator
 } from "@fortawesome/free-solid-svg-icons";
 
 interface BarangMasuk {
@@ -38,7 +39,7 @@ interface Produk {
   nama_produk: string;
   kategori: string;
   harga: number;
-  stok: number; // This is the initial stock
+  stok: number;
   tanggal_kadaluarsa?: string;
   BarangMasuk: BarangMasuk[];
   BarangKeluar: BarangKeluar[];
@@ -48,6 +49,14 @@ export default function ProsesFifo() {
   const [produkList, setProdukList] = useState<Produk[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCalculation, setShowCalculation] = useState<number | null>(null);
+  const [calculationCache, setCalculationCache] = useState<Record<number, {
+    result: BarangKeluarDetail[];
+    calculation: string;
+    totalMasuk: number;
+    totalKeluar: number;
+    sisaStok: number;
+  }>>({});
 
   const fetchProduk = useCallback(async () => {
     try {
@@ -87,7 +96,6 @@ export default function ProsesFifo() {
     try {
       const doc = new jsPDF();
       
-      // Header with logo and title
       doc.setFontSize(18);
       doc.setTextColor(40, 40, 40);
       doc.text("Laporan FIFO Inventory", 105, 15, { align: 'center' });
@@ -96,7 +104,6 @@ export default function ProsesFifo() {
       doc.setTextColor(100, 100, 100);
       doc.text(`Dibuat pada: ${new Date().toLocaleDateString('id-ID')}`, 105, 22, { align: 'center' });
 
-      // Summary table
       autoTable(doc, {
         startY: 30,
         head: [["No", "Produk", "Kategori", "Stok Awal", "Sisa Stok", "Status"]],
@@ -108,8 +115,8 @@ export default function ProsesFifo() {
             index + 1,
             produk.nama_produk,
             produk.kategori,
-            produk.stok, // Initial stock
-            sisaStok,   // Remaining stock
+            produk.stok,
+            sisaStok,
             status
           ];
         }),
@@ -124,7 +131,6 @@ export default function ProsesFifo() {
         margin: { top: 10 }
       });
 
-      // Detailed transactions
       doc.addPage();
       doc.setFontSize(16);
       doc.text("Detail Transaksi FIFO", 105, 15, { align: 'center' });
@@ -135,7 +141,7 @@ export default function ProsesFifo() {
         doc.setFontSize(14);
         doc.text(`${produk.nama_produk} (${produk.kategori})`, 14, 25);
         
-        const fifoKeluar = simulateFifo(produk.BarangMasuk, produk.BarangKeluar);
+        const { result: fifoKeluar } = simulateFifo(produk.BarangMasuk, produk.BarangKeluar);
         
         autoTable(doc, {
           startY: 35,
@@ -165,6 +171,14 @@ export default function ProsesFifo() {
             3: { cellWidth: 'auto' }
           }
         });
+
+        doc.addPage();
+        doc.setFontSize(14);
+        doc.text(`Perhitungan FIFO - ${produk.nama_produk}`, 14, 20);
+        
+        const calculation = generateCalculationText(produk);
+        doc.setFontSize(10);
+        doc.text(calculation.split('\n'), 14, 30);
       });
 
       doc.save(`Laporan_FIFO_${new Date().toISOString().slice(0, 10)}.pdf`);
@@ -180,24 +194,50 @@ export default function ProsesFifo() {
     return Math.max(0, totalMasuk - totalKeluar);
   };
 
+  const generateCalculationText = (produk: Produk) => {
+    const totalMasuk = produk.BarangMasuk.reduce((sum, bm) => sum + bm.jumlah, 0);
+    const totalKeluar = produk.BarangKeluar.reduce((sum, bk) => sum + bk.jumlah, 0);
+    const sisaStok = totalMasuk - totalKeluar;
+
+    let calculationText = "=== Rumus FIFO ===\n";
+    calculationText += `Sisa Stok = Total Masuk - Total Keluar\n`;
+    calculationText += `= ${totalMasuk} - ${totalKeluar}\n`;
+    calculationText += `= ${sisaStok} pcs\n\n`;
+
+    calculationText += "=== Langkah Perhitungan ===\n";
+    const { calculation } = simulateFifo(produk.BarangMasuk, produk.BarangKeluar);
+    calculationText += calculation;
+
+    calculationText += "\n=== Hasil Akhir ===\n";
+    calculationText += `Total Masuk: ${totalMasuk} pcs\n`;
+    calculationText += `Total Keluar: ${totalKeluar} pcs\n`;
+    calculationText += `Sisa Stok: ${sisaStok} pcs\n`;
+
+    return calculationText;
+  };
+
   const simulateFifo = (
     barangMasuk: BarangMasuk[],
     barangKeluar: BarangKeluar[]
-  ): BarangKeluarDetail[] => {
-    // Create a deep copy of incoming items
-    const masukQueue = JSON.parse(JSON.stringify(barangMasuk)).sort(
-      (a: BarangMasuk, b: BarangMasuk) => 
-        new Date(a.tanggal_masuk).getTime() - new Date(b.tanggal_masuk).getTime()
+  ): { result: BarangKeluarDetail[]; calculation: string } => {
+    const masukQueue = [...barangMasuk].sort(
+      (a, b) => new Date(a.tanggal_masuk).getTime() - new Date(b.tanggal_masuk).getTime()
     );
 
     const hasilKeluar: BarangKeluarDetail[] = [];
+    let calculationSteps = "=== FIFO Calculation Steps ===\n\n";
+    const totalMasuk = masukQueue.reduce((sum, bm) => sum + bm.jumlah, 0);
+    const totalKeluar = barangKeluar.reduce((sum, bk) => sum + bk.jumlah, 0);
 
     for (const keluar of barangKeluar) {
       let sisaKeluar = keluar.jumlah;
+      calculationSteps += `Processing Keluar ID ${keluar.id} (${keluar.jumlah} pcs):\n`;
 
       while (sisaKeluar > 0 && masukQueue.length > 0) {
         const masuk = masukQueue[0];
         const jumlahDiambil = Math.min(sisaKeluar, masuk.jumlah);
+
+        calculationSteps += `- Mengambil ${jumlahDiambil} pcs dari Masuk ID ${masuk.id} (Tersedia: ${masuk.jumlah} pcs, Exp: ${masuk.masa_exp || '-'})\n`;
 
         hasilKeluar.push({
           tanggal_keluar: keluar.tanggal_keluar,
@@ -210,22 +250,59 @@ export default function ProsesFifo() {
         sisaKeluar -= jumlahDiambil;
 
         if (masuk.jumlah === 0) {
+          calculationSteps += `- Stok Masuk ID ${masuk.id} habis, dihapus dari queue\n`;
           masukQueue.shift();
         }
       }
 
       if (sisaKeluar > 0) {
-        console.warn(`Tidak cukup stok untuk transaksi keluar ${keluar.id}`);
+        calculationSteps += `⚠ Peringatan: Tidak cukup stok untuk ${sisaKeluar} pcs dari transaksi keluar ${keluar.id}\n`;
       }
+      calculationSteps += "\n";
     }
 
-    return hasilKeluar;
+    const sisaStok = Math.max(0, totalMasuk - totalKeluar);
+    calculationSteps += "=== Hasil Akhir ===\n";
+    calculationSteps += `Total Barang Masuk: ${totalMasuk} pcs\n`;
+    calculationSteps += `Total Barang Keluar: ${totalKeluar} pcs\n`;
+    calculationSteps += `Sisa Stok: ${sisaStok} pcs`;
+
+    return {
+      result: hasilKeluar,
+      calculation: calculationSteps
+    };
+  };
+
+  const handleShowCalculation = (produkId: number) => {
+    if (showCalculation === produkId) {
+      setShowCalculation(null);
+    } else {
+      setShowCalculation(produkId);
+      const produk = produkList.find(p => p.id === produkId);
+      if (produk && !calculationCache[produkId]) {
+        const { result, calculation } = simulateFifo(produk.BarangMasuk, produk.BarangKeluar);
+        const totalMasuk = produk.BarangMasuk.reduce((sum, bm) => sum + bm.jumlah, 0);
+        const totalKeluar = produk.BarangKeluar.reduce((sum, bk) => sum + bk.jumlah, 0);
+        const sisaStok = totalMasuk - totalKeluar;
+        
+        setCalculationCache(prev => ({
+          ...prev,
+          [produkId]: {
+            result,
+            calculation,
+            totalMasuk,
+            totalKeluar,
+            sisaStok
+          }
+        }));
+      }
+    }
   };
 
   const renderTransactionDetails = (produk: Produk) => {
     const hasMasuk = produk.BarangMasuk?.length > 0;
     const hasKeluar = produk.BarangKeluar?.length > 0;
-    const fifoKeluar = simulateFifo(produk.BarangMasuk, produk.BarangKeluar);
+    const cachedResult = calculationCache[produk.id]?.result || [];
 
     if (!hasMasuk && !hasKeluar) {
       return <div className="text-muted small">Tidak ada transaksi</div>;
@@ -249,7 +326,7 @@ export default function ProsesFifo() {
           </div>
         ))}
 
-        {fifoKeluar.map((keluar, idx) => (
+        {hasKeluar && cachedResult.map((keluar, idx) => (
           <div key={`keluar-${idx}`} className="mb-1 small">
             <Badge bg="danger" className="me-2">
               <FontAwesomeIcon icon={faArrowRightArrowLeft} className="me-1" />
@@ -264,6 +341,66 @@ export default function ProsesFifo() {
           </div>
         ))}
       </div>
+    );
+  };
+
+  const renderFifoCalculation = (produk: Produk) => {
+    if (showCalculation !== produk.id) return null;
+
+    const cachedData = calculationCache[produk.id] || {
+      calculation: "Menghitung...",
+      totalMasuk: 0,
+      totalKeluar: 0,
+      sisaStok: 0
+    };
+
+    return (
+      <Card className="mt-3 mb-3 border-primary">
+        <Card.Header className="bg-primary text-white">
+          <FontAwesomeIcon icon={faCalculator} className="me-2" />
+          Perhitungan Matematis FIFO untuk {produk.nama_produk}
+        </Card.Header>
+        <Card.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Rumus FIFO:</Form.Label>
+            <Form.Control 
+              as="textarea" 
+              readOnly 
+              value={`Sisa Stok = Total Masuk - Total Keluar\n= ${cachedData.totalMasuk} - ${cachedData.totalKeluar}\n= ${cachedData.sisaStok} pcs`}
+              rows={3}
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.Label>Detail Perhitungan:</Form.Label>
+            <Form.Control 
+              as="textarea" 
+              readOnly 
+              value={cachedData.calculation}
+              rows={10}
+              style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
+            />
+          </Form.Group>
+
+          <div className="mt-3">
+            <h5>Flowchart Algoritma FIFO:</h5>
+            <div className="border p-3 ">
+              <ol>
+                <li>Urutkan barang masuk berdasarkan tanggal (yang pertama masuk pertama keluar)</li>
+                <li>Untuk setiap transaksi keluar:
+                  <ul>
+                    <li>Ambil dari barang masuk pertama di queue</li>
+                    <li>Jika jumlah tidak cukup, ambil sisanya dari barang masuk berikutnya</li>
+                    <li>Kurangi stok barang masuk yang diambil</li>
+                    <li>Jika stok barang masuk habis, hapus dari queue</li>
+                  </ul>
+                </li>
+                <li>Lanjutkan sampai semua transaksi keluar diproses</li>
+              </ol>
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
     );
   };
 
@@ -373,7 +510,6 @@ export default function ProsesFifo() {
 
       {loading ? renderLoading() : (
         <>
-          {/* Raw Data Table */}
           <Card className="mb-4 shadow-sm border-0">
             <Card.Header className="bg-primary text-white py-3">
               <h5 className="mb-0">
@@ -384,7 +520,7 @@ export default function ProsesFifo() {
             <Card.Body>
               <div className="table-responsive">
                 <Table striped bordered hover className="mb-0">
-                  <thead >
+                  <thead>
                     <tr>
                       <th style={{ width: "50px" }}>No</th>
                       <th>Nama Produk</th>
@@ -393,6 +529,7 @@ export default function ProsesFifo() {
                       <th>Stok Awal</th>
                       <th>Kadaluarsa</th>
                       <th>Detail Transaksi</th>
+                      <th>Perhitungan</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -415,6 +552,17 @@ export default function ProsesFifo() {
                           ) : '-'}
                         </td>
                         <td>{renderTransactionDetails(produk)}</td>
+                        <td>
+                          <Button 
+                            variant="outline-primary" 
+                            size="sm" 
+                            onClick={() => handleShowCalculation(produk.id)}
+                          >
+                            <FontAwesomeIcon icon={faCalculator} className="me-1" />
+                            {showCalculation === produk.id ? 'Sembunyikan' : 'Perhitungan'}
+                          </Button>
+                          {renderFifoCalculation(produk)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -423,7 +571,6 @@ export default function ProsesFifo() {
             </Card.Body>
           </Card>
 
-          {/* FIFO Analysis Table */}
           <Card className="mb-4 shadow-sm border-0">
             <Card.Header className="bg-primary text-white py-3">
               <h5 className="mb-0">
@@ -434,7 +581,7 @@ export default function ProsesFifo() {
             <Card.Body>
               <div className="table-responsive">
                 <Table striped bordered hover className="mb-0">
-                  <thead >
+                  <thead>
                     <tr>
                       <th style={{ width: "50px" }}>No</th>
                       <th>Nama Produk</th>
@@ -472,7 +619,6 @@ export default function ProsesFifo() {
             </Card.Body>
           </Card>
 
-          {/* Recommendations Table */}
           <Card className="mb-4 shadow-sm border-0">
             <Card.Header className="bg-primary text-white py-3">
               <h5 className="mb-0">
@@ -483,7 +629,7 @@ export default function ProsesFifo() {
             <Card.Body>
               <div className="table-responsive">
                 <Table striped bordered hover className="mb-0">
-                  <thead >
+                  <thead>
                     <tr>
                       <th style={{ width: "50px" }}>No</th>
                       <th>Nama Produk</th>
