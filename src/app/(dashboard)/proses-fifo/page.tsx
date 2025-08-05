@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button, Table, Card, Container, Spinner, Badge, Alert, Form } from "react-bootstrap";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -11,7 +11,11 @@ import {
   faBox,
   faArrowRightArrowLeft,
   faLightbulb,
-  faCalculator
+  faCalculator,
+  faSortNumericUp,
+  faHistory,
+  faLayerGroup,
+  faStream
 } from "@fortawesome/free-solid-svg-icons";
 
 interface BarangMasuk {
@@ -53,6 +57,7 @@ export default function ProsesFifo() {
   const [calculationCache, setCalculationCache] = useState<Record<number, {
     result: BarangKeluarDetail[];
     calculation: string;
+    visualTags: string[];
     totalMasuk: number;
     totalKeluar: number;
     sisaStok: number;
@@ -154,7 +159,7 @@ export default function ProsesFifo() {
               masuk.masa_exp ? `Exp: ${formatDate(masuk.masa_exp)}` : '-'
             ]),
             ...fifoKeluar.map(keluar => [
-              "KELUAR",
+              "KELUAR (FIFO)",
               formatDate(keluar.tanggal_keluar),
               keluar.jumlah,
               `Dari Masuk ID: ${keluar.dari_masuk_id}${keluar.masa_exp ? ` (Exp: ${formatDate(keluar.masa_exp)})` : ''}`
@@ -219,25 +224,35 @@ export default function ProsesFifo() {
   const simulateFifo = (
     barangMasuk: BarangMasuk[],
     barangKeluar: BarangKeluar[]
-  ): { result: BarangKeluarDetail[]; calculation: string } => {
+  ): { result: BarangKeluarDetail[]; calculation: string; visualTags: string[] } => {
     const masukQueue = [...barangMasuk].sort(
       (a, b) => new Date(a.tanggal_masuk).getTime() - new Date(b.tanggal_masuk).getTime()
     );
 
     const hasilKeluar: BarangKeluarDetail[] = [];
     let calculationSteps = "=== FIFO Calculation Steps ===\n\n";
-    const totalMasuk = masukQueue.reduce((sum, bm) => sum + bm.jumlah, 0);
-    const totalKeluar = barangKeluar.reduce((sum, bk) => sum + bk.jumlah, 0);
+    const visualTags: string[] = [];
+    
+    // Initial queue visualization
+    visualTags.push(
+      `📦 Antrian Awal: ${masukQueue.map(m => `ID ${m.id} (${m.jumlah}pcs)`).join(' → ')}`
+    );
 
     for (const keluar of barangKeluar) {
       let sisaKeluar = keluar.jumlah;
       calculationSteps += `Processing Keluar ID ${keluar.id} (${keluar.jumlah} pcs):\n`;
+      visualTags.push(
+        `🛒 Memproses Keluar: ID ${keluar.id} (${keluar.jumlah}pcs)`
+      );
 
       while (sisaKeluar > 0 && masukQueue.length > 0) {
         const masuk = masukQueue[0];
         const jumlahDiambil = Math.min(sisaKeluar, masuk.jumlah);
 
-        calculationSteps += `- Mengambil ${jumlahDiambil} pcs dari Masuk ID ${masuk.id} (Tersedia: ${masuk.jumlah} pcs, Exp: ${masuk.masa_exp || '-'})\n`;
+        calculationSteps += `- Mengambil ${jumlahDiambil} pcs dari Masuk ID ${masuk.id}\n`;
+        visualTags.push(
+          `🔹 Mengambil ${jumlahDiambil}pcs dari Masuk ID ${masuk.id} (Sisa: ${masuk.jumlah}pcs)`
+        );
 
         hasilKeluar.push({
           tanggal_keluar: keluar.tanggal_keluar,
@@ -250,26 +265,29 @@ export default function ProsesFifo() {
         sisaKeluar -= jumlahDiambil;
 
         if (masuk.jumlah === 0) {
-          calculationSteps += `- Stok Masuk ID ${masuk.id} habis, dihapus dari queue\n`;
+          calculationSteps += `- Stok Masuk ID ${masuk.id} habis\n`;
+          visualTags.push(`❌ Hapus stok kosong: ID ${masuk.id}`);
           masukQueue.shift();
         }
       }
 
       if (sisaKeluar > 0) {
-        calculationSteps += `⚠ Peringatan: Tidak cukup stok untuk ${sisaKeluar} pcs dari transaksi keluar ${keluar.id}\n`;
+        calculationSteps += `⚠ Peringatan: Tidak cukup stok\n`;
+        visualTags.push(`⚠ Peringatan: Stok tidak cukup untuk ${sisaKeluar}pcs`);
       }
-      calculationSteps += "\n";
+      
+      // Current queue visualization
+      visualTags.push(
+        `📊 Antrian Sekarang: ${masukQueue.length > 0 ? 
+          masukQueue.map(m => `ID ${m.id} (${m.jumlah}pcs)`).join(' → ') : 
+          'Kosong'}`
+      );
     }
-
-    const sisaStok = Math.max(0, totalMasuk - totalKeluar);
-    calculationSteps += "=== Hasil Akhir ===\n";
-    calculationSteps += `Total Barang Masuk: ${totalMasuk} pcs\n`;
-    calculationSteps += `Total Barang Keluar: ${totalKeluar} pcs\n`;
-    calculationSteps += `Sisa Stok: ${sisaStok} pcs`;
 
     return {
       result: hasilKeluar,
-      calculation: calculationSteps
+      calculation: calculationSteps,
+      visualTags
     };
   };
 
@@ -280,7 +298,7 @@ export default function ProsesFifo() {
       setShowCalculation(produkId);
       const produk = produkList.find(p => p.id === produkId);
       if (produk && !calculationCache[produkId]) {
-        const { result, calculation } = simulateFifo(produk.BarangMasuk, produk.BarangKeluar);
+        const { result, calculation, visualTags } = simulateFifo(produk.BarangMasuk, produk.BarangKeluar);
         const totalMasuk = produk.BarangMasuk.reduce((sum, bm) => sum + bm.jumlah, 0);
         const totalKeluar = produk.BarangKeluar.reduce((sum, bk) => sum + bk.jumlah, 0);
         const sisaStok = totalMasuk - totalKeluar;
@@ -290,6 +308,7 @@ export default function ProsesFifo() {
           [produkId]: {
             result,
             calculation,
+            visualTags,
             totalMasuk,
             totalKeluar,
             sisaStok
@@ -311,10 +330,10 @@ export default function ProsesFifo() {
     return (
       <div style={{ maxHeight: '160px', overflowY: 'auto' }}>
         {hasMasuk && produk.BarangMasuk.map((masuk, idx) => (
-          <div key={`masuk-${idx}`} className="mb-1 small">
+          <div key={`masuk-${idx}`} className="mb-2 small">
             <Badge bg="success" className="me-2">
               <FontAwesomeIcon icon={faBox} className="me-1" />
-              Masuk
+              Masuk #{idx + 1}
             </Badge>
             <span className="fw-semibold">{formatDate(masuk.tanggal_masuk)}</span> - 
             <span className="text-primary mx-1">{masuk.jumlah} pcs</span>
@@ -323,14 +342,18 @@ export default function ProsesFifo() {
                 (Exp: {formatDate(masuk.masa_exp)})
               </span>
             )}
+            <div className="ms-4 text-info small">
+              <FontAwesomeIcon icon={faLayerGroup} className="me-1" />
+              Urutan FIFO: {idx + 1}
+            </div>
           </div>
         ))}
 
         {hasKeluar && cachedResult.map((keluar, idx) => (
-          <div key={`keluar-${idx}`} className="mb-1 small">
+          <div key={`keluar-${idx}`} className="mb-2 small">
             <Badge bg="danger" className="me-2">
               <FontAwesomeIcon icon={faArrowRightArrowLeft} className="me-1" />
-              Keluar
+              Keluar #{idx + 1}
             </Badge>
             <span className="fw-semibold">{formatDate(keluar.tanggal_keluar)}</span> - 
             <span className="text-primary mx-1">{keluar.jumlah} pcs</span>
@@ -338,6 +361,10 @@ export default function ProsesFifo() {
               (Dari Masuk ID: {keluar.dari_masuk_id}
               {keluar.masa_exp && `, Exp: ${formatDate(keluar.masa_exp)}`})
             </span>
+            <div className="ms-4 text-success small">
+              <FontAwesomeIcon icon={faStream} className="me-1" />
+              Diproses dengan FIFO (Ambil dari yang pertama masuk)
+            </div>
           </div>
         ))}
       </div>
@@ -351,7 +378,8 @@ export default function ProsesFifo() {
       calculation: "Menghitung...",
       totalMasuk: 0,
       totalKeluar: 0,
-      sisaStok: 0
+      sisaStok: 0,
+      visualTags: []
     };
 
     return (
@@ -383,19 +411,66 @@ export default function ProsesFifo() {
           </Form.Group>
 
           <div className="mt-3">
-            <h5>Flowchart Algoritma FIFO:</h5>
+            <h5>
+              <FontAwesomeIcon icon={faSortNumericUp} className="me-2" />
+              Visualisasi Alur FIFO:
+            </h5>
+            <div className="border p-3 " style={{ maxHeight: '200px', overflowY: 'auto' }}>
+              {cachedData.visualTags?.length > 0 ? (
+                cachedData.visualTags.map((tag, index) => (
+                  <div key={index} className="mb-2 small">
+                    {tag.includes('📦') && <Badge bg="info" className="me-2">Antrian</Badge>}
+                    {tag.includes('🛒') && <Badge bg="warning" className="me-2">Proses</Badge>}
+                    {tag.includes('🔹') && <Badge bg="primary" className="me-2">Aksi</Badge>}
+                    {tag.includes('❌') && <Badge bg="danger" className="me-2">Hapus</Badge>}
+                    {tag.includes('⚠') && <Badge bg="danger" className="me-2">Peringatan</Badge>}
+                    {tag.includes('📊') && <Badge bg="success" className="me-2">Status</Badge>}
+                    <span>{tag.replace(/[📦🛒🔹❌⚠📊]/g, '').trim()}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-muted">Tidak ada data visualisasi</div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <h5>
+              <FontAwesomeIcon icon={faHistory} className="me-2" />
+              Flowchart Algoritma FIFO:
+            </h5>
             <div className="border p-3 ">
-              <ol>
-                <li>Urutkan barang masuk berdasarkan tanggal (yang pertama masuk pertama keluar)</li>
-                <li>Untuk setiap transaksi keluar:
-                  <ul>
-                    <li>Ambil dari barang masuk pertama di queue</li>
-                    <li>Jika jumlah tidak cukup, ambil sisanya dari barang masuk berikutnya</li>
-                    <li>Kurangi stok barang masuk yang diambil</li>
-                    <li>Jika stok barang masuk habis, hapus dari queue</li>
+              <ol className="list-unstyled">
+                <li className="mb-2">
+                  <Badge bg="info" className="me-2">1</Badge>
+                  Urutkan barang masuk berdasarkan tanggal (FIFO)
+                </li>
+                <li className="mb-2">
+                  <Badge bg="info" className="me-2">2</Badge>
+                  Untuk setiap transaksi keluar:
+                  <ul className="mt-2">
+                    <li className="mb-1">
+                      <Badge bg="primary" className="me-2">2.1</Badge>
+                      Ambil dari barang masuk pertama di antrian
+                    </li>
+                    <li className="mb-1">
+                      <Badge bg="primary" className="me-2">2.2</Badge>
+                      Jika jumlah tidak cukup, ambil sisanya dari barang berikutnya
+                    </li>
+                    <li className="mb-1">
+                      <Badge bg="primary" className="me-2">2.3</Badge>
+                      Kurangi stok barang masuk yang diambil
+                    </li>
+                    <li className="mb-1">
+                      <Badge bg="danger" className="me-2">2.4</Badge>
+                      Jika stok habis, hapus dari antrian
+                    </li>
                   </ul>
                 </li>
-                <li>Lanjutkan sampai semua transaksi keluar diproses</li>
+                <li>
+                  <Badge bg="info" className="me-2">3</Badge>
+                  Ulangi sampai semua transaksi keluar diproses
+                </li>
               </ol>
             </div>
           </div>
