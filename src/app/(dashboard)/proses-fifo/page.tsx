@@ -15,7 +15,8 @@ import {
   faSortNumericUp,
   faHistory,
   faLayerGroup,
-  faStream
+  faStream,
+  faProjectDiagram
 } from "@fortawesome/free-solid-svg-icons";
 
 interface BarangMasuk {
@@ -29,6 +30,7 @@ interface BarangKeluar {
   id: number;
   tanggal_keluar: string;
   jumlah: number;
+  masa_exp?: string;
 }
 
 interface BarangKeluarDetail {
@@ -109,6 +111,31 @@ export default function ProsesFifo() {
       doc.setTextColor(100, 100, 100);
       doc.text(`Dibuat pada: ${new Date().toLocaleDateString('id-ID')}`, 105, 22, { align: 'center' });
 
+      // Add FIFO algorithm explanation to PDF
+      doc.addPage();
+      doc.setFontSize(16);
+      doc.text("Penjelasan Algoritma FIFO", 105, 15, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text("Visualisasi Alur FIFO:", 14, 25);
+      doc.text("P1    P2    P3    P4    P5", 14, 35);
+      doc.text("Gambar 2.1 Algoritma FIFO", 14, 45);
+      
+      doc.text("Algoritma ini dinilai adil dalam antrian. Proses yang datang terlebih dahulu akan diproses lebih dulu,", 14, 60);
+      doc.text("namun pendekatan ini dianggap kurang adil karena proses dengan durasi lama dapat menyebabkan proses", 14, 70);
+      doc.text("yang lebih singkat harus menunggu lebih lama untuk dieksekusi.", 14, 80);
+      
+      doc.text("Rumus Waktu Tunggu:", 14, 95);
+      doc.text("Waiting Time (WT) = Start Time (ST) - Arrival Time (AT)", 20, 105);
+      
+      doc.text("Rumus Waktu Penyelesaian:", 14, 120);
+      doc.text("Turn Around Time (TAT) = Burst Time (BT) + Waiting Time (WT)", 20, 130);
+      
+      doc.text("Rumus Rata-rata Waktu Penyelesaian:", 14, 145);
+      doc.text("Average Turn Around Time (ATAT) = Jumlah TAT setiap proses / Jumlah Proses", 20, 155);
+
+      // Continue with the rest of the PDF generation
+      doc.addPage();
       autoTable(doc, {
         startY: 30,
         head: [["No", "Produk", "Kategori", "Stok Awal", "Sisa Stok", "Status"]],
@@ -575,6 +602,110 @@ export default function ProsesFifo() {
           Export PDF
         </Button>
       </div>
+
+      {/* FIFO Algorithm Explanation Card */}
+      <Card className="mb-4 shadow-sm border-primary">
+        <Card.Header className="bg-primary text-white py-3">
+          <h5 className="mb-0">
+            <FontAwesomeIcon icon={faProjectDiagram} className="me-2" />
+            Algoritma FIFO (First-In-First-Out)
+          </h5>
+        </Card.Header>
+        <Card.Body>
+          <div className="mb-4">
+            <h6>Visualisasi Alur FIFO:</h6>
+            <div className="text-center mb-3 p-2 border rounded bg-light">
+              <div className="d-flex justify-content-around align-items-center">
+                <div className="fw-bold">P1</div>
+                <div className="fw-bold">P2</div>
+                <div className="fw-bold">P3</div>
+                <div className="fw-bold">P4</div>
+                <div className="fw-bold">P5</div>
+              </div>
+              <small className="text-muted">Gambar 2.1 Algoritma FIFO</small>
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <p>
+              Algoritma ini dinilai adil dalam antrian. Proses yang datang terlebih dahulu akan diproses lebih dulu, 
+              namun pendekatan ini dianggap kurang adil karena proses dengan durasi lama dapat menyebabkan proses yang 
+              lebih singkat harus menunggu lebih lama untuk dieksekusi.
+            </p>
+          </div>
+
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <Card className="h-100">
+                <Card.Header className="bg-info text-white">
+                  <FontAwesomeIcon icon={faCalculator} className="me-2" />
+                  Rumus Waktu Tunggu
+                </Card.Header>
+                <Card.Body>
+                  <p className="mb-1">
+                    <strong>Waiting Time (WT)</strong> = <strong>Start Time (ST)</strong> - <strong>Arrival Time (AT)</strong>
+                  </p>
+                  <div className="ms-3">
+                    <p className="mb-1 small">
+                      <strong>Arrival Time (AT)</strong>: Waktu kedatangan
+                    </p>
+                    <p className="mb-1 small">
+                      <strong>Start Time (ST)</strong>: Waktu mulai pelayanan
+                    </p>
+                    <p className="mb-1 small">
+                      <strong>Waiting Time (WT)</strong>: Waktu tunggu
+                    </p>
+                    <p className="mb-0 small">
+                      <strong>Average Waiting Time (AWT)</strong>: Rata-rata waktu tunggu
+                    </p>
+                  </div>
+                </Card.Body>
+              </Card>
+            </div>
+
+            <div className="col-md-6 mb-3">
+              <Card className="h-100">
+                <Card.Header className="bg-info text-white">
+                  <FontAwesomeIcon icon={faCalculator} className="me-2" />
+                  Rumus Waktu Penyelesaian
+                </Card.Header>
+                <Card.Body>
+                  <p className="mb-1">
+                    <strong>Turn Around Time (TAT)</strong> = <strong>Burst Time (BT)</strong> + <strong>Waiting Time (WT)</strong>
+                  </p>
+                  <div className="ms-3">
+                    <p className="mb-1 small">
+                      <strong>Burst Time (BT)</strong>: Waktu proses
+                    </p>
+                    <p className="mb-1 small">
+                      <strong>Waiting Time (WT)</strong>: Waktu tunggu
+                    </p>
+                    <p className="mb-1 small">
+                      <strong>Turn Around Time (TAT)</strong>: Waktu penyelesaian proses
+                    </p>
+                    <p className="mb-1 small">
+                      <strong>Average Turn Around Time (ATAT)</strong>: Rata-rata waktu penyelesaian
+                    </p>
+                    <p className="mb-0 small">
+                      <strong>ATAT = Σ(TAT) / Jumlah Proses</strong>
+                    </p>
+                  </div>
+                </Card.Body>
+              </Card>
+            </div>
+          </div>
+
+          <div className="alert alert-info">
+            <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
+            <strong>Catatan:</strong> Dalam konteks inventory management, konsep FIFO diterapkan dengan:
+            <ul className="mb-0 mt-2">
+              <li>Barang yang pertama masuk (P1) akan menjadi yang pertama keluar</li>
+              <li>Waktu kedatangan (AT) analog dengan tanggal masuk barang</li>
+              <li>Waktu proses (BT) analog dengan jumlah stok yang dikeluarkan</li>
+            </ul>
+          </div>
+        </Card.Body>
+      </Card>
 
       {error && (
         <Alert variant="danger" className="mb-4">
